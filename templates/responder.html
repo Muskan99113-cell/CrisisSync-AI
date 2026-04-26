@@ -1,0 +1,421 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Responder Brief - CrisisSync</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            background: #0d0d0d;
+            font-family: Arial, sans-serif;
+            color: white;
+            min-height: 100vh;
+        }
+
+        .top {
+            background: #111;
+            padding: 14px 20px;
+            border-bottom: 1px solid #222;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .brand {
+            font-size: 18px;
+            font-weight: bold;
+            color: #ff3333;
+        }
+
+        .brand span { color: white; }
+
+        .nav a {
+            margin-left: 12px;
+            text-decoration: none;
+            color: #777;
+            font-size: 13px;
+            padding: 6px 14px;
+            border-radius: 6px;
+            background: #1e1e1e;
+        }
+
+        .nav a:hover { color: white; }
+        .nav a.here {
+            background: #ff3333;
+            color: white;
+        }
+
+        .content { padding: 20px; }
+
+        /* transit banner */
+        .transit-bar {
+            background: #1a1200;
+            border: 1px solid #3a2a00;
+            border-radius: 10px;
+            padding: 14px 18px;
+            margin-bottom: 16px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .transit-bar p {
+            font-size: 13px;
+            color: #ffaa00;
+        }
+
+        .transit-bar span {
+            font-size: 22px;
+            font-weight: bold;
+            color: #ffaa00;
+        }
+
+        /* no crisis state */
+        .no-crisis {
+            text-align: center;
+            padding: 80px 20px;
+        }
+
+        .no-crisis h2 {
+            font-size: 20px;
+            color: #33cc33;
+            margin-bottom: 10px;
+        }
+
+        .no-crisis p {
+            color: #555;
+            font-size: 14px;
+        }
+
+        /* brief card */
+        .brief-card {
+            background: #111;
+            border: 1px solid #222;
+            border-radius: 10px;
+            padding: 18px;
+            margin-bottom: 14px;
+            display: none;
+        }
+
+        .brief-card h3 {
+            font-size: 11px;
+            color: #666;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 14px;
+        }
+
+        /* sections inside brief */
+        .brief-section {
+            margin-bottom: 14px;
+            padding-bottom: 14px;
+            border-bottom: 1px solid #1e1e1e;
+        }
+
+        .brief-section:last-child {
+            border-bottom: none;
+            margin-bottom: 0;
+            padding-bottom: 0;
+        }
+
+        .brief-section h4 {
+            font-size: 11px;
+            color: #ff8800;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 6px;
+        }
+
+        .brief-section p {
+            font-size: 14px;
+            color: #ccc;
+            line-height: 1.6;
+        }
+
+        /* severity indicator */
+        .severity-row {
+            display: flex;
+            gap: 6px;
+            margin-top: 6px;
+        }
+
+        .sev-block {
+            flex: 1;
+            height: 6px;
+            border-radius: 3px;
+            background: #222;
+        }
+
+        .sev-active { background: #ff3333; }
+
+        /* persons summary */
+        .persons-summary {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 10px;
+            margin-bottom: 14px;
+            display: none;
+        }
+
+        .stat-box {
+            background: #111;
+            border: 1px solid #222;
+            border-radius: 10px;
+            padding: 14px;
+            text-align: center;
+        }
+
+        .stat-box h4 {
+            font-size: 11px;
+            color: #666;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .stat-box p {
+            font-size: 28px;
+            font-weight: bold;
+            margin-top: 6px;
+        }
+
+        .stat-total { color: #fff; }
+        .stat-help { color: #ff3333; }
+        .stat-staff { color: #ff8800; }
+
+        /* get brief button */
+        #getBriefBtn {
+            width: 100%;
+            padding: 14px;
+            background: #cc0000;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 15px;
+            font-weight: bold;
+            cursor: pointer;
+            margin-bottom: 14px;
+        }
+
+        #getBriefBtn:hover { background: #aa0000; }
+        #getBriefBtn:disabled { background: #333; cursor: not-allowed; }
+
+        .loading-text {
+            text-align: center;
+            color: #555;
+            font-size: 13px;
+            padding: 10px;
+            display: none;
+        }
+
+        /* last updated */
+        .updated-tag {
+            text-align: center;
+            font-size: 11px;
+            color: #444;
+            margin-top: 10px;
+        }
+    </style>
+</head>
+<body>
+
+<div class="top">
+    <div class="brand">Crisis<span>Sync</span> AI</div>
+    <div class="nav">
+        <a href="/staff">Staff</a>
+        <a href="/responder" class="here">Responder</a>
+        <a href="/guest/TAG-001">Guest View</a>
+    </div>
+</div>
+
+<div class="content">
+
+    <!-- transit timer -->
+    <div class="transit-bar" id="transitBar" style="display:none">
+        <p>🚒 En route — Briefing ready before arrival</p>
+        <span id="timerDisplay">3:00</span>
+    </div>
+
+    <!-- no crisis -->
+    <div class="no-crisis" id="noCrisisScreen">
+        <h2>✅ No Active Emergency</h2>
+        <p>This page will update automatically<br>
+        when a crisis is declared.</p>
+        <br>
+        <p style="color:#333; font-size:12px;">Checking every 5 seconds...</p>
+    </div>
+
+    <!-- stats row -->
+    <div class="persons-summary" id="statsRow">
+        <div class="stat-box">
+            <h4>Total Tracked</h4>
+            <p class="stat-total" id="totalCount">0</p>
+        </div>
+        <div class="stat-box">
+            <h4>Need Help</h4>
+            <p class="stat-help" id="helpCount">0</p>
+        </div>
+        <div class="stat-box">
+            <h4>Staff Active</h4>
+            <p class="stat-staff" id="staffCount">0</p>
+        </div>
+    </div>
+
+    <!-- get brief button -->
+    <button id="getBriefBtn" style="display:none" onclick="loadBrief()">
+        📋 Generate Tactical Brief with Gemini AI
+    </button>
+
+    <div class="loading-text" id="loadingText">
+        Gemini generating tactical brief...
+    </div>
+
+    <!-- brief card -->
+    <div class="brief-card" id="briefCard">
+        <h3>⚡ Gemini Tactical Brief</h3>
+        <div id="briefContent"></div>
+    </div>
+
+    <div class="updated-tag" id="updatedTag"></div>
+
+</div>
+
+<script>
+    let crisisActive = false
+    let timerInterval = null
+
+    // check crisis every 5 seconds
+    async function checkCrisis() {
+        try {
+            let res = await fetch('/api/hotel-data')
+            let data = await res.json()
+
+            if (data.crisis_active && !crisisActive) {
+                crisisActive = true
+                showCrisisUI(data)
+            } else if (!data.crisis_active) {
+                crisisActive = false
+                showNoCrisis()
+            }
+        } catch(e) {
+            console.log('check error', e)
+        }
+    }
+
+    function showNoCrisis() {
+        document.getElementById('noCrisisScreen').style.display = 'block'
+        document.getElementById('statsRow').style.display = 'none'
+        document.getElementById('getBriefBtn').style.display = 'none'
+        document.getElementById('briefCard').style.display = 'none'
+        document.getElementById('transitBar').style.display = 'none'
+        if (timerInterval) clearInterval(timerInterval)
+    }
+
+    function showCrisisUI(data) {
+        document.getElementById('noCrisisScreen').style.display = 'none'
+
+        // show transit timer
+        document.getElementById('transitBar').style.display = 'flex'
+        startTimer(180)
+
+        // update stats
+        let persons = data.persons || {}
+        let total = Object.keys(persons).length
+        let needHelp = Object.values(persons)
+            .filter(p => p.special_needs && p.special_needs !== 'none').length
+        let staff = Object.values(persons)
+            .filter(p => p.type === 'staff').length
+
+        document.getElementById('totalCount').textContent = total
+        document.getElementById('helpCount').textContent = needHelp
+        document.getElementById('staffCount').textContent = staff
+
+        document.getElementById('statsRow').style.display = 'grid'
+        document.getElementById('getBriefBtn').style.display = 'block'
+    }
+
+    // countdown timer - 3 min transit
+    function startTimer(seconds) {
+        if (timerInterval) clearInterval(timerInterval)
+        let remaining = seconds
+        timerInterval = setInterval(() => {
+            let m = Math.floor(remaining / 60)
+            let s = remaining % 60
+            document.getElementById('timerDisplay').textContent =
+                m + ':' + (s < 10 ? '0' : '') + s
+            remaining--
+            if (remaining < 0) clearInterval(timerInterval)
+        }, 1000)
+    }
+
+    // load gemini brief
+    async function loadBrief() {
+        let btn = document.getElementById('getBriefBtn')
+        btn.disabled = true
+        btn.textContent = 'Generating...'
+        document.getElementById('loadingText').style.display = 'block'
+
+        try {
+            let res = await fetch('/api/responder-brief')
+            let data = await res.json()
+
+            // parse brief into sections
+            let brief = data.brief
+            let sections = brief.split('\n')
+            let html = ''
+
+            sections.forEach(line => {
+                line = line.trim()
+                if (!line) return
+
+                if (line.startsWith('SITUATION:')) {
+                    html += `<div class="brief-section">
+                        <h4>Situation</h4>
+                        <p>${line.replace('SITUATION:', '').trim()}</p>
+                    </div>`
+                } else if (line.startsWith('ENTRY POINT:')) {
+                    html += `<div class="brief-section">
+                        <h4>Entry Point</h4>
+                        <p>${line.replace('ENTRY POINT:', '').trim()}</p>
+                    </div>`
+                } else if (line.startsWith('KEY RISKS:')) {
+                    html += `<div class="brief-section">
+                        <h4>Key Risks</h4>
+                        <p>`
+                } else if (line.startsWith('PRIORITY RESCUE:')) {
+                    html += `</p></div><div class="brief-section">
+                        <h4>Priority Rescue</h4>
+                        <p>${line.replace('PRIORITY RESCUE:', '').trim()}</p>
+                    </div>`
+                } else if (line.startsWith('SAFE ZONES:')) {
+                    html += `<div class="brief-section">
+                        <h4>Safe Zones</h4>
+                        <p>${line.replace('SAFE ZONES:', '').trim()}</p>
+                    </div>`
+                } else if (line.startsWith('-')) {
+                    html += `• ${line.replace('-', '').trim()}<br>`
+                }
+            })
+
+            document.getElementById('briefContent').innerHTML = html
+            document.getElementById('briefCard').style.display = 'block'
+            document.getElementById('loadingText').style.display = 'none'
+            document.getElementById('updatedTag').textContent =
+                'Last updated: ' + new Date().toLocaleTimeString()
+
+            btn.textContent = '🔄 Refresh Brief'
+            btn.disabled = false
+
+        } catch(e) {
+            console.log('brief error', e)
+            btn.disabled = false
+        }
+    }
+
+    checkCrisis()
+    setInterval(checkCrisis, 5000)
+</script>
+
+</body>
+</html>

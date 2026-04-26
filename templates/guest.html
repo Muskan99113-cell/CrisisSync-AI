@@ -1,0 +1,376 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CrisisSync - Guest</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            background: #0d0d0d;
+            font-family: Arial, sans-serif;
+            color: white;
+            min-height: 100vh;
+        }
+
+        .top {
+            background: #111;
+            padding: 14px 20px;
+            border-bottom: 1px solid #222;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .brand {
+            font-size: 18px;
+            font-weight: bold;
+            color: #ff3333;
+        }
+
+        .brand span { color: white; }
+
+        .tag-info {
+            font-size: 12px;
+            color: #555;
+            background: #1a1a1a;
+            padding: 5px 12px;
+            border-radius: 15px;
+        }
+
+        /* safe state */
+        .safe-screen {
+            text-align: center;
+            padding: 80px 30px;
+        }
+
+        .safe-icon {
+            font-size: 60px;
+            margin-bottom: 20px;
+        }
+
+        .safe-screen h2 {
+            font-size: 22px;
+            color: #33cc33;
+            margin-bottom: 10px;
+        }
+
+        .safe-screen p {
+            color: #666;
+            font-size: 14px;
+            line-height: 1.6;
+        }
+
+        /* crisis state - hidden by default */
+        .crisis-screen {
+            display: none;
+            padding: 20px;
+        }
+
+        .alert-banner {
+            background: #cc0000;
+            border-radius: 10px;
+            padding: 16px 20px;
+            text-align: center;
+            margin-bottom: 18px;
+        }
+
+        .alert-banner h2 {
+            font-size: 20px;
+            font-weight: bold;
+            letter-spacing: 0.5px;
+        }
+
+        .alert-banner p {
+            font-size: 12px;
+            margin-top: 4px;
+            opacity: 0.85;
+        }
+
+        /* route card */
+        .route-card {
+            background: #151515;
+            border: 1px solid #252525;
+            border-radius: 10px;
+            padding: 18px;
+            margin-bottom: 14px;
+        }
+
+        .route-card h3 {
+            font-size: 11px;
+            color: #666;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 14px;
+        }
+
+        .step {
+            display: flex;
+            align-items: flex-start;
+            gap: 12px;
+            margin-bottom: 12px;
+        }
+
+        .step-num {
+            background: #ff3333;
+            color: white;
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            font-size: 12px;
+            font-weight: bold;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            margin-top: 1px;
+        }
+
+        .step p {
+            font-size: 14px;
+            line-height: 1.5;
+            color: #ddd;
+        }
+
+        /* instruction box */
+        .instruction-box {
+            background: #0a1a0a;
+            border: 1px solid #1a3a1a;
+            border-radius: 10px;
+            padding: 16px;
+            margin-bottom: 14px;
+        }
+
+        .instruction-box h3 {
+            font-size: 11px;
+            color: #33cc33;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 10px;
+        }
+
+        .instruction-box p {
+            font-size: 14px;
+            color: #aaddaa;
+            line-height: 1.7;
+        }
+
+        /* voice button */
+        #voiceBtn {
+            width: 100%;
+            padding: 14px;
+            background: #1a3a1a;
+            border: 1px solid #2a5a2a;
+            border-radius: 8px;
+            color: #33cc33;
+            font-size: 14px;
+            cursor: pointer;
+            margin-bottom: 14px;
+        }
+
+        #voiceBtn:hover { background: #1f4a1f; }
+
+        /* exit info */
+        .exit-info {
+            background: #151515;
+            border: 1px solid #252525;
+            border-radius: 10px;
+            padding: 16px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .exit-info h4 { font-size: 13px; color: #888; }
+        .exit-info p { font-size: 16px; font-weight: bold; margin-top: 3px; }
+
+        .exit-time {
+            text-align: right;
+        }
+
+        .exit-time h4 { font-size: 13px; color: #888; }
+        .exit-time p { 
+            font-size: 22px; 
+            font-weight: bold; 
+            color: #ffaa00;
+        }
+
+        /* loading */
+        .loading {
+            text-align: center;
+            padding: 60px 20px;
+            display: none;
+        }
+
+        .loading p {
+            color: #666;
+            font-size: 14px;
+            margin-top: 15px;
+        }
+
+        .spinner {
+            width: 40px;
+            height: 40px;
+            border: 3px solid #222;
+            border-top: 3px solid #ff3333;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+            margin: 0 auto;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+
+<div class="top">
+    <div class="brand">Crisis<span>Sync</span> AI</div>
+    <div class="tag-info" id="tagLabel">TAG-001</div>
+</div>
+
+<!-- Safe State -->
+<div class="safe-screen" id="safeScreen">
+    <div class="safe-icon">🟢</div>
+    <h2>You are Safe</h2>
+    <p>No emergency active.<br>
+    This page will automatically update<br>
+    if an emergency is declared.</p>
+    <br>
+    <p style="color:#333; font-size:12px;">
+        Auto-checking every 5 seconds...
+    </p>
+</div>
+
+<!-- Loading -->
+<div class="loading" id="loadingScreen">
+    <div class="spinner"></div>
+    <p>Gemini AI calculating your safe route...</p>
+</div>
+
+<!-- Crisis State -->
+<div class="crisis-screen" id="crisisScreen">
+
+    <div class="alert-banner">
+        <h2>⚠️ Emergency Declared</h2>
+        <p>Follow the route below immediately</p>
+    </div>
+
+    <div class="route-card">
+        <h3>Your Safe Route</h3>
+        <div id="routeSteps"></div>
+    </div>
+
+    <div class="instruction-box">
+        <h3>Instructions</h3>
+        <p id="instructionText"></p>
+    </div>
+
+    <button id="voiceBtn" onclick="speakInstructions()">
+        🔊 Play Voice Instructions
+    </button>
+
+    <div class="exit-info">
+        <div>
+            <h4>Exit Point</h4>
+            <p id="exitPoint">—</p>
+        </div>
+        <div class="exit-time">
+            <h4>Est. Time</h4>
+            <p id="exitTime">— min</p>
+        </div>
+    </div>
+
+</div>
+
+<script>
+    // tag id from URL
+    let tagId = window.location.pathname.split('/').pop()
+    document.getElementById('tagLabel').textContent = tagId
+
+    let instructionForVoice = ''
+    let crisisActive = false
+
+    // check every 5 seconds if crisis happened
+    async function checkCrisis() {
+        try {
+            let res = await fetch('/api/hotel-data')
+            let data = await res.json()
+
+            if (data.crisis_active && !crisisActive) {
+                crisisActive = true
+                showLoading()
+                await loadRoute()
+            } else if (!data.crisis_active && crisisActive) {
+                crisisActive = false
+                showSafe()
+            }
+        } catch(e) {
+            console.log('check failed', e)
+        }
+    }
+
+    function showLoading() {
+        document.getElementById('safeScreen').style.display = 'none'
+        document.getElementById('crisisScreen').style.display = 'none'
+        document.getElementById('loadingScreen').style.display = 'block'
+    }
+
+    function showSafe() {
+        document.getElementById('safeScreen').style.display = 'block'
+        document.getElementById('crisisScreen').style.display = 'none'
+        document.getElementById('loadingScreen').style.display = 'none'
+    }
+
+    async function loadRoute() {
+        try {
+            let res = await fetch('/api/get-route/' + tagId)
+            let data = await res.json()
+
+            // fill route steps
+            let stepsHtml = ''
+            data.route.primary_route.forEach((step, i) => {
+                stepsHtml += `
+                    <div class="step">
+                        <div class="step-num">${i+1}</div>
+                        <p>${step}</p>
+                    </div>
+                `
+            })
+            document.getElementById('routeSteps').innerHTML = stepsHtml
+
+            // fill instructions
+            document.getElementById('instructionText').textContent = data.instructions
+            instructionForVoice = data.instructions
+
+            // fill exit info
+            document.getElementById('exitPoint').textContent = data.route.exit_used
+            document.getElementById('exitTime').textContent = data.route.estimated_minutes
+
+            // show crisis screen
+            document.getElementById('loadingScreen').style.display = 'none'
+            document.getElementById('crisisScreen').style.display = 'block'
+
+        } catch(e) {
+            console.log('route load failed', e)
+        }
+    }
+
+    // voice instructions using browser TTS
+    function speakInstructions() {
+        if (!instructionForVoice) return
+        let utterance = new SpeechSynthesisUtterance(instructionForVoice)
+        utterance.rate = 0.9
+        utterance.pitch = 1
+        window.speechSynthesis.speak(utterance)
+    }
+
+    // start checking
+    checkCrisis()
+    setInterval(checkCrisis, 5000)
+</script>
+
+</body>
+</html>

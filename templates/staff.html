@@ -1,0 +1,370 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Staff Panel - CrisisSync</title>
+    <style>
+        /* reset kiya maine basic */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background-color: #0d0d0d;
+            font-family: Arial, sans-serif;
+            color: white;
+        }
+
+        /* header thoda simple rakha */
+        .top-bar {
+            background: #151515;
+            padding: 14px 25px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid #2a2a2a;
+        }
+
+        .brand {
+            font-size: 20px;
+            font-weight: bold;
+            color: #ff3333;
+        }
+
+        .brand span {
+            color: #ffffff;
+        }
+
+        /* nav links */
+        .nav a {
+            margin-left: 12px;
+            text-decoration: none;
+            color: #777;
+            font-size: 13px;
+            padding: 6px 14px;
+            border-radius: 6px;
+            background: #1e1e1e;
+        }
+
+        .nav a:hover { color: white; }
+        .nav a.here { 
+            background: #ff3333; 
+            color: white; 
+        }
+
+        /* system status top right */
+        #sysStatus {
+            font-size: 13px;
+            padding: 6px 16px;
+            border-radius: 20px;
+            background: #0a2a0a;
+            color: #33ff33;
+            font-weight: 600;
+        }
+
+        .content {
+            padding: 20px 25px;
+            display: grid;
+            grid-template-columns: 1.2fr 1fr;
+            gap: 18px;
+        }
+
+        /* cards */
+        .box {
+            background: #151515;
+            border: 1px solid #252525;
+            border-radius: 10px;
+            padding: 18px;
+        }
+
+        .box-title {
+            font-size: 11px;
+            letter-spacing: 1.5px;
+            color: #666;
+            text-transform: uppercase;
+            margin-bottom: 14px;
+        }
+
+        /* emergency button area */
+        .crisis-box {
+            grid-column: 1 / -1;
+        }
+
+        #emergencyBtn {
+            width: 100%;
+            padding: 16px;
+            font-size: 16px;
+            font-weight: bold;
+            background: #cc0000;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            letter-spacing: 0.5px;
+        }
+
+        /* i kept hover simple */
+        #emergencyBtn:hover { background: #aa0000; }
+        #emergencyBtn:disabled { background: #555; cursor: not-allowed; }
+
+        #resetBtn {
+            margin-top: 8px;
+            width: 100%;
+            padding: 10px;
+            background: #222;
+            color: #aaa;
+            border: 1px solid #333;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 13px;
+        }
+
+        #resetBtn:hover { background: #2a2a2a; color: white; }
+
+        /* analysis result box */
+        #resultBox {
+            margin-top: 14px;
+            background: #1a1a1a;
+            border-left: 3px solid #ff3333;
+            border-radius: 6px;
+            padding: 14px;
+            font-size: 13px;
+            line-height: 1.8;
+            color: #ccc;
+            display: none;
+        }
+
+        /* floor map styles */
+        .floor-row {
+            display: flex;
+            align-items: center;
+            padding: 11px 13px;
+            background: #1a1a1a;
+            border-radius: 7px;
+            margin-bottom: 8px;
+            border: 1px solid #222;
+            gap: 14px;
+        }
+
+        .floor-num {
+            font-size: 17px;
+            font-weight: bold;
+            width: 35px;
+            color: #ddd;
+        }
+
+        .floor-info {
+            flex: 1;
+        }
+
+        .floor-info p {
+            font-size: 12px;
+            color: #777;
+        }
+
+        .floor-info h4 {
+            font-size: 13px;
+            font-weight: 600;
+            margin-top: 2px;
+        }
+
+        /* status dots */
+        .dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+        }
+
+        .green { background: #33cc33; }
+        .orange { background: #ff8800; }
+        .red { 
+            background: #ff2222;
+            animation: pulse 0.8s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.6; transform: scale(1.3); }
+        }
+
+        /* persons list */
+        .person {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 11px 13px;
+            background: #1a1a1a;
+            border-radius: 7px;
+            margin-bottom: 8px;
+            /* border left color depends on type */
+            border-left: 3px solid #444;
+        }
+
+        .person.guest-type { border-left-color: #3366ff; }
+        .person.staff-type { border-left-color: #ff8800; }
+
+        .person h4 { font-size: 13px; }
+        .person p { font-size: 11px; color: #666; margin-top: 3px; }
+
+        .badge {
+            font-size: 10px;
+            padding: 3px 9px;
+            border-radius: 10px;
+            font-weight: bold;
+        }
+
+        .g-badge { background: #0a1a3a; color: #3366ff; }
+        .s-badge { background: #2a1a0a; color: #ff8800; }
+    </style>
+</head>
+<body>
+
+<div class="top-bar">
+    <div class="brand">Crisis<span>Sync</span> AI</div>
+    <div class="nav">
+        <a href="/staff" class="here">Staff</a>
+        <a href="/responder">Responder</a>
+        <a href="/guest/TAG-001">Guest View</a>
+    </div>
+    <div id="sysStatus">● All Clear</div>
+</div>
+
+<div class="content">
+
+    <!-- trigger section -->
+    <div class="box crisis-box">
+        <div class="box-title">Emergency Control Panel</div>
+        <button id="emergencyBtn" onclick="triggerCrisis()">
+            🚨 Declare Emergency — Floor 3, Zone A (Fire)
+        </button>
+        <button id="resetBtn" onclick="resetCrisis()">Reset System</button>
+        <div id="resultBox"></div>
+    </div>
+
+    <!-- floor map -->
+    <div class="box">
+        <div class="box-title">Live Floor Map</div>
+
+        <div class="floor-row">
+            <div class="floor-num">F4</div>
+            <div class="floor-info">
+                <p>Fourth Floor</p>
+                <h4>0 persons tracked</h4>
+            </div>
+            <div class="dot green"></div>
+        </div>
+
+        <div class="floor-row">
+            <div class="floor-num">F3</div>
+            <div class="floor-info">
+                <p>Third Floor — Zone A, B</p>
+                <h4>3 persons tracked</h4>
+            </div>
+            <div class="dot green" id="f3dot"></div>
+        </div>
+
+        <div class="floor-row">
+            <div class="floor-num">F2</div>
+            <div class="floor-info">
+                <p>Second Floor</p>
+                <h4>0 persons tracked</h4>
+            </div>
+            <div class="dot green"></div>
+        </div>
+
+        <div class="floor-row">
+            <div class="floor-num">GF</div>
+            <div class="floor-info">
+                <p>Ground — Assembly Point</p>
+                <h4>0 persons tracked</h4>
+            </div>
+            <div class="dot green"></div>
+        </div>
+    </div>
+
+    <!-- persons -->
+    <div class="box">
+        <div class="box-title">Tracked Persons (BLE Tags)</div>
+
+        <div class="person guest-type">
+            <div>
+                <h4>Room 301</h4>
+                <p>Floor 3 · Zone A · Hindi speaking</p>
+            </div>
+            <span class="badge g-badge">GUEST</span>
+        </div>
+
+        <div class="person guest-type">
+            <div>
+                <h4>Room 304 ♿</h4>
+                <p>Floor 3 · Zone B · Wheelchair user</p>
+            </div>
+            <span class="badge g-badge">GUEST</span>
+        </div>
+
+        <div class="person staff-type">
+            <div>
+                <h4>Ravi Kumar</h4>
+                <p>Floor 3 · Zone B · Floor Manager</p>
+            </div>
+            <span class="badge s-badge">STAFF</span>
+        </div>
+    </div>
+
+</div>
+
+<script>
+    // trigger crisis button click
+    async function triggerCrisis() {
+        let btn = document.getElementById('emergencyBtn')
+        btn.textContent = 'Analyzing with Gemini AI...'
+        btn.disabled = true
+
+        let res = await fetch('/api/trigger-crisis', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                type: 'fire',
+                floor: 3,
+                zone: 'ZoneA',
+                danger_zones: ['ZoneA', 'ZoneB'],
+                people_count: 12
+            })
+        })
+
+        let data = await res.json()
+
+        // update status
+        document.getElementById('sysStatus').style.background = '#2a0a0a'
+        document.getElementById('sysStatus').style.color = '#ff3333'
+        document.getElementById('sysStatus').textContent = '● Crisis Active — Floor 3'
+
+        // floor 3 dot goes red
+        document.getElementById('f3dot').className = 'dot red'
+
+        // show gemini result
+        let box = document.getElementById('resultBox')
+        box.style.display = 'block'
+        box.innerHTML = `
+            <strong style="color:#ff4444">Gemini Analysis Result</strong><br><br>
+            Severity Level: ${data.analysis.severity} / 5<br>
+            Immediate Action: ${data.analysis.immediate_action}<br>
+            Zones to Clear: ${data.analysis.zones_to_evacuate.join(', ')}<br>
+            Estimated Time: ${data.analysis.estimated_time_minutes} min
+        `
+
+        btn.textContent = '🚨 Emergency Declared'
+    }
+
+    // reset everything
+    async function resetCrisis() {
+        await fetch('/api/reset', { method: 'POST' })
+        location.reload()
+    }
+</script>
+
+</body>
+</html>
