@@ -1,1 +1,23 @@
+# Secrets
+.env
+.env.*
+!.env.example
 serviceAccountKey.json
+*.pem
+*.key
+
+# Local runtime data (local fallback database)
+local_database.json
+
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+
+# Build / editor / OS
+.dist/
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
