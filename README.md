@@ -66,13 +66,6 @@ https://crisis-sync-ai-five.vercel.app/
 
 The latest deployed version of CrisisSync AI is available online through Vercel.
 
----
-
-# 🎥 Project Demonstration
-
-📹 **Project Demo Video**
-
-https://drive.google.com/file/d/1Aka3lm9y9_eSCoMQL2QJ_1QToGPoDLWV/view
 
 ---
 
