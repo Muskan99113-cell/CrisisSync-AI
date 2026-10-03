@@ -1,275 +1,531 @@
-import os
 import json
+import os
+import tempfile
 import threading
-from copy import deepcopy
-
-from dotenv import load_dotenv
-
-load_dotenv()
-
-# ============================================================
-# LOCAL DATABASE
-# ============================================================
-# Temporary replacement for Firebase during local development.
-#
-# Data is stored in:
-#     local_database.json
-#
-# This keeps the same basic interface that app.py currently
-# uses:
-#
-#     db.reference("/hotel").get()
-#     db.reference("/hotel/crisis_active").set(True)
-#
-# Later, Firebase/Supabase/PostgreSQL can be added without
-# changing the frontend structure.
-# ============================================================
-
-BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-DB_FILE = os.path.join(BASE_DIR, "local_database.json")
-
-_lock = threading.Lock()
 
 
 # ============================================================
-# DEFAULT DATA
+# DATABASE CONFIGURATION
 # ============================================================
 
-DEFAULT_DATABASE = {
-    "hotel": {
-        "crisis_active": False,
-        "crisis_type": "",
-        "crisis_floor": 0,
-        "danger_zones": [],
-        "severity": 0,
+# Vercel serverless filesystem is read-only except /tmp.
+# Locally this also works without needing a project-folder DB.
+DATABASE_FILE = os.path.join(
+    tempfile.gettempdir(),
+    "crisis_sync_database.json"
+)
 
-        # Demo occupants.
-        # These can be changed later from the application.
-        "persons": {
-            "GUEST-001": {
-                "name": "Demo Guest",
-                "floor": 3,
-                "zone": "Room 301",
-                "room": "301",
-                "role": "guest",
-                "special_needs": "none",
-                "language": "English"
-            },
-
-            "GUEST-002": {
-                "name": "Demo Guest 2",
-                "floor": 3,
-                "zone": "Room 305",
-                "room": "305",
-                "role": "guest",
-                "special_needs": "none",
-                "language": "English"
-            },
-
-            "GUEST-003": {
-                "name": "Demo Guest 3",
-                "floor": 2,
-                "zone": "Room 204",
-                "room": "204",
-                "role": "guest",
-                "special_needs": "mobility",
-                "language": "English"
-            },
-
-            "STAFF-001": {
-                "name": "Demo Staff",
-                "floor": 1,
-                "zone": "Reception",
-                "room": "Reception",
-                "role": "staff",
-                "special_needs": "none",
-                "language": "English"
-            }
-        }
-    }
-}
+# RLock is important because database methods call _save_database()
+# while already holding the database lock.
+DATABASE_LOCK = threading.RLock()
 
 
 # ============================================================
-# DATABASE FILE HELPERS
+# DATABASE HELPERS
 # ============================================================
-
-def _create_database_if_missing():
-    """Create local_database.json if it doesn't exist."""
-
-    if not os.path.exists(DB_FILE):
-        with open(DB_FILE, "w", encoding="utf-8") as file:
-            json.dump(
-                DEFAULT_DATABASE,
-                file,
-                indent=4,
-                ensure_ascii=False
-            )
-
 
 def _load_database():
-    """Load the complete local database."""
 
-    _create_database_if_missing()
+    if not os.path.exists(DATABASE_FILE):
+        return {}
 
     try:
-        with open(DB_FILE, "r", encoding="utf-8") as file:
-            data = json.load(file)
 
-        if not isinstance(data, dict):
-            return deepcopy(DEFAULT_DATABASE)
+        with open(
+            DATABASE_FILE,
+            "r",
+            encoding="utf-8"
+        ) as file:
 
-        return data
+            content = file.read().strip()
 
-    except (json.JSONDecodeError, OSError):
-        return deepcopy(DEFAULT_DATABASE)
+            if not content:
+                return {}
+
+            data = json.loads(content)
+
+            if isinstance(data, dict):
+                return data
+
+            return {}
+
+    except (
+        json.JSONDecodeError,
+        OSError,
+        TypeError
+    ) as error:
+
+        print(
+            "Database read error:",
+            error
+        )
+
+        return {}
 
 
 def _save_database(data):
-    """Save the complete local database."""
 
-    temp_file = DB_FILE + ".tmp"
+    """
+    Save database atomically.
 
-    with open(temp_file, "w", encoding="utf-8") as file:
-        json.dump(
-            data,
-            file,
-            indent=4,
-            ensure_ascii=False
+    Uses /tmp on Vercel because the deployment filesystem
+    is read-only.
+    """
+
+    with DATABASE_LOCK:
+
+        directory = os.path.dirname(
+            DATABASE_FILE
         )
 
-    # Replace old database safely.
-    os.replace(temp_file, DB_FILE)
+        if directory:
+            os.makedirs(
+                directory,
+                exist_ok=True
+            )
+
+        temp_file = None
+
+        try:
+
+            file_descriptor, temp_file = tempfile.mkstemp(
+                prefix="crisis_sync_database_",
+                suffix=".tmp",
+                dir=directory
+            )
+
+            with os.fdopen(
+                file_descriptor,
+                "w",
+                encoding="utf-8"
+            ) as file:
+
+                json.dump(
+                    data,
+                    file,
+                    indent=2,
+                    ensure_ascii=False
+                )
+
+                file.flush()
+
+                try:
+                    os.fsync(
+                        file.fileno()
+                    )
+                except OSError:
+                    pass
+
+            os.replace(
+                temp_file,
+                DATABASE_FILE
+            )
+
+            temp_file = None
+
+        finally:
+
+            if (
+                temp_file
+                and os.path.exists(temp_file)
+            ):
+
+                try:
+
+                    os.remove(
+                        temp_file
+                    )
+
+                except OSError:
+
+                    pass
 
 
 # ============================================================
-# LOCAL DATABASE REFERENCE
+# PATH UTILITIES
+# ============================================================
+
+def _split_path(path):
+
+    if path is None:
+        return []
+
+    path = str(path).strip()
+
+    if not path:
+        return []
+
+    path = path.strip("/")
+
+    if not path:
+        return []
+
+    return [
+        part
+        for part in path.split("/")
+        if part
+    ]
+
+
+def _get_value(data, parts):
+
+    current = data
+
+    for part in parts:
+
+        if not isinstance(
+            current,
+            dict
+        ):
+            return None
+
+        if part not in current:
+            return None
+
+        current = current[part]
+
+    return current
+
+
+def _set_value(
+    data,
+    parts,
+    value
+):
+
+    if not parts:
+        return value
+
+    current = data
+
+    for part in parts[:-1]:
+
+        if part not in current:
+
+            current[part] = {}
+
+        elif not isinstance(
+            current[part],
+            dict
+        ):
+
+            current[part] = {}
+
+        current = current[part]
+
+    current[parts[-1]] = value
+
+    return data
+
+
+def _delete_value(
+    data,
+    parts
+):
+
+    if not parts:
+        return {}
+
+    current = data
+
+    for part in parts[:-1]:
+
+        if not isinstance(
+            current,
+            dict
+        ):
+            return data
+
+        if part not in current:
+            return data
+
+        current = current[part]
+
+    if isinstance(
+        current,
+        dict
+    ):
+
+        current.pop(
+            parts[-1],
+            None
+        )
+
+    return data
+
+
+# ============================================================
+# DATABASE REFERENCE
 # ============================================================
 
 class LocalReference:
-    """
-    Firebase-like reference object.
 
-    Supports:
+    def __init__(
+        self,
+        path=""
+    ):
 
-        reference("/hotel").get()
+        self.path = (
+            str(path)
+            if path is not None
+            else ""
+        )
 
-        reference("/hotel/status").get()
 
-        reference("/hotel/status").set(True)
+    # ========================================================
+    # CHILD
+    # ========================================================
 
-        reference("/hotel/status").set("active")
-    """
+    def child(self, key):
 
-    def __init__(self, path):
-        self.path = path.strip("/")
-
-    def _parts(self):
         if not self.path:
-            return []
 
-        return [
-            part
-            for part in self.path.split("/")
-            if part
-        ]
+            new_path = str(key)
+
+        else:
+
+            new_path = (
+                self.path.rstrip("/")
+                + "/"
+                + str(key).strip("/")
+            )
+
+        return LocalReference(
+            new_path
+        )
+
+
+    # ========================================================
+    # GET
+    # ========================================================
 
     def get(self):
-        """Get data from the requested path."""
 
-        with _lock:
+        with DATABASE_LOCK:
 
             data = _load_database()
 
-            parts = self._parts()
+            parts = _split_path(
+                self.path
+            )
 
-            if not parts:
-                return deepcopy(data)
+            return _get_value(
+                data,
+                parts
+            )
 
-            current = data
 
-            for part in parts:
-
-                if not isinstance(current, dict):
-                    return None
-
-                if part not in current:
-                    return None
-
-                current = current[part]
-
-            return deepcopy(current)
+    # ========================================================
+    # SET
+    # ========================================================
 
     def set(self, value):
-        """Set data at the requested path."""
 
-        with _lock:
+        with DATABASE_LOCK:
 
             data = _load_database()
 
-            parts = self._parts()
+            parts = _split_path(
+                self.path
+            )
 
             if not parts:
-                data = deepcopy(value)
+
+                data = value
 
             else:
 
-                current = data
+                _set_value(
+                    data,
+                    parts,
+                    value
+                )
 
-                for part in parts[:-1]:
+            _save_database(
+                data
+            )
 
-                    if part not in current:
-                        current[part] = {}
+            return value
 
-                    if not isinstance(current[part], dict):
-                        current[part] = {}
 
-                    current = current[part]
+    # ========================================================
+    # UPDATE
+    # ========================================================
 
-                current[parts[-1]] = deepcopy(value)
+    def update(self, values):
 
-            _save_database(data)
+        if not isinstance(
+            values,
+            dict
+        ):
 
-        return None
+            raise TypeError(
+                "update() requires a dictionary"
+            )
+
+        with DATABASE_LOCK:
+
+            data = _load_database()
+
+            parts = _split_path(
+                self.path
+            )
+
+            current = _get_value(
+                data,
+                parts
+            )
+
+            if not isinstance(
+                current,
+                dict
+            ):
+
+                current = {}
+
+            current = dict(
+                current
+            )
+
+            current.update(
+                values
+            )
+
+            if not parts:
+
+                data = current
+
+            else:
+
+                _set_value(
+                    data,
+                    parts,
+                    current
+                )
+
+            _save_database(
+                data
+            )
+
+            return current
+
+
+    # ========================================================
+    # DELETE
+    # ========================================================
+
+    def delete(self):
+
+        with DATABASE_LOCK:
+
+            data = _load_database()
+
+            parts = _split_path(
+                self.path
+            )
+
+            data = _delete_value(
+                data,
+                parts
+            )
+
+            _save_database(
+                data
+            )
+
+
+    # ========================================================
+    # PUSH
+    # ========================================================
+
+    def push(self, value):
+
+        with DATABASE_LOCK:
+
+            data = _load_database()
+
+            parts = _split_path(
+                self.path
+            )
+
+            current = _get_value(
+                data,
+                parts
+            )
+
+            if not isinstance(
+                current,
+                dict
+            ):
+
+                current = {}
+
+            key = (
+                "item_"
+                + os.urandom(6).hex()
+            )
+
+            current[key] = value
+
+            if parts:
+
+                _set_value(
+                    data,
+                    parts,
+                    current
+                )
+
+            else:
+
+                data = current
+
+            _save_database(
+                data
+            )
+
+            return LocalReference(
+                self.path.rstrip("/")
+                + "/"
+                + key
+            )
+
+
+    # ========================================================
+    # EXISTS
+    # ========================================================
+
+    def exists(self):
+
+        return self.get() is not None
 
 
 # ============================================================
-# LOCAL DATABASE OBJECT
+# DATABASE OBJECT
 # ============================================================
 
 class LocalDatabase:
-    """
-    Firebase-compatible replacement used locally.
-    """
 
-    def reference(self, path="/"):
-        return LocalReference(path)
+    def reference(
+        self,
+        path=""
+    ):
 
-
-# ============================================================
-# INITIALIZE LOCAL DATABASE
-# ============================================================
-
-_create_database_if_missing()
-
-_local_db = LocalDatabase()
+        return LocalReference(
+            path
+        )
 
 
 # ============================================================
-# SAME FUNCTION NAME USED BY app.py
+# SINGLE DATABASE INSTANCE
+# ============================================================
+
+_database = LocalDatabase()
+
+
+# ============================================================
+# PUBLIC DATABASE FUNCTION
 # ============================================================
 
 def get_db():
-    """
-    Returns the local database object.
 
-    app.py can continue using:
-
-        db = get_db()
-
-        db.reference("/hotel").get()
-
-        db.reference("/hotel/crisis_active").set(True)
-    """
-
-    return _local_db
+    return _database

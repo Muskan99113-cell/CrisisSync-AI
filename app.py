@@ -1,12 +1,6 @@
 from flask import Flask, render_template, jsonify, request
 from firebase_config import get_db
-from gemini_service import (
-    analyze_crisis,
-    get_safe_route,
-    get_guest_instructions,
-    get_responder_brief
-)
-
+import os
 import random
 import threading
 import time
@@ -44,6 +38,146 @@ def generate_device_id():
 
 
 # ============================================================
+# LOCAL SAFETY LOGIC
+# NO EXTERNAL AI / GEMINI REQUIRED
+# ============================================================
+
+def analyze_crisis(
+    floor,
+    zone,
+    crisis_type,
+    people_count,
+    sensor_severity=80
+):
+    severity = max(
+        1,
+        min(
+            5,
+            round(sensor_severity / 20)
+        )
+    )
+
+    if crisis_type in ("fire", "smoke"):
+        action = (
+            f"Evacuate Floor {floor} immediately "
+            "via the nearest safe stairwell."
+        )
+
+    elif crisis_type in ("gas", "gas leak"):
+        action = (
+            f"Move away from Floor {floor} "
+            "and evacuate through a safe exit. "
+            "Do not use elevators."
+        )
+
+    elif crisis_type in ("flood", "water"):
+        action = (
+            f"Move away from affected areas on Floor {floor} "
+            "and follow staff evacuation instructions."
+        )
+
+    else:
+        action = (
+            f"Evacuate the affected area on Floor {floor} "
+            "and follow emergency instructions."
+        )
+
+    return {
+        "severity": severity,
+        "immediate_action": action,
+        "zones_to_evacuate": (
+            [zone] if zone else []
+        ),
+        "estimated_time_minutes": 5
+    }
+
+
+def get_safe_route(
+    floor,
+    zone,
+    special_needs,
+    danger_zones
+):
+    if special_needs and special_needs != "none":
+
+        primary = [
+            "Move to the nearest accessible safe corridor",
+            "Follow staff/responder assistance",
+            "Exit at Ground Floor via the designated safe exit"
+        ]
+
+        backup = [
+            "Remain in a safe area away from the danger zone",
+            "Wait for responder assistance"
+        ]
+
+        assistance = True
+
+    else:
+
+        primary = [
+            "Move to the nearest safe corridor",
+            "Take the designated emergency stairwell",
+            "Exit at Ground Floor via the designated safe exit"
+        ]
+
+        backup = [
+            "Move to the alternate safe corridor",
+            "Take the emergency exit"
+        ]
+
+        assistance = False
+
+    return {
+        "primary_route": primary,
+        "backup_route": backup,
+        "exit_used": "Designated Safe Exit",
+        "estimated_minutes": 4,
+        "needs_assistance": assistance
+    }
+
+
+def get_guest_instructions(
+    route_data,
+    language
+):
+    return (
+        "Please remain calm, move to the safe corridor, "
+        "follow the designated emergency route, and "
+        "exit the building through the designated safe exit. "
+        "Do not use elevators."
+    )
+
+
+def get_responder_brief(
+    crisis_type,
+    floor,
+    danger_zones,
+    total_persons,
+    needs_assistance_count
+):
+    zones = (
+        ", ".join(danger_zones)
+        if danger_zones
+        else "the affected area"
+    )
+
+    return (
+        f"SITUATION: {crisis_type.title()} emergency "
+        f"on Floor {floor}, {zones}\n"
+        "ENTRY POINT: Use the designated responder "
+        "entry point and safe stairwell.\n"
+        "KEY RISKS:\n"
+        f"- Keep clear of {zones}\n"
+        "- Do not use elevators during evacuation\n"
+        f"PRIORITY RESCUE: {needs_assistance_count} "
+        "person(s) may require assistance\n"
+        "SAFE ZONES: Ground floor lobby and "
+        "designated safe assembly area"
+    )
+
+
+# ============================================================
 # INITIAL HOTEL STATE
 # ============================================================
 
@@ -52,50 +186,66 @@ def initialize_hotel():
     hotel = get_hotel()
 
     defaults = {
+
         "name": "The Grand Delhi",
+
         "status": "operational",
 
         "crisis_active": False,
+
         "crisis_type": "",
+
         "crisis_floor": 0,
+
         "danger_zones": [],
+
         "severity": 0,
 
         "incident_id": "",
+
         "incident_started": "",
+
         "incident_message": "",
 
         "occupancy": 184,
+
         "staff_count": 32,
+
         "responders": 6,
 
         "connected_devices": 0,
+
         "online_devices": 0,
 
         "last_event": "System initialized",
+
         "last_event_time": now(),
 
         "wifi_network": "GRAND_DELHI_GUEST",
 
         "floors": {
+
             "1": {
                 "name": "Lobby",
                 "occupancy": 38,
                 "capacity": 80,
                 "status": "safe"
             },
+
             "2": {
                 "name": "North Wing",
                 "occupancy": 47,
                 "capacity": 70,
                 "status": "safe"
             },
+
             "3": {
                 "name": "East Wing",
                 "occupancy": 51,
                 "capacity": 70,
                 "status": "safe"
             },
+
             "4": {
                 "name": "Premium Wing",
                 "occupancy": 48,
@@ -105,24 +255,28 @@ def initialize_hotel():
         },
 
         "zones": {
+
             "F1-LOBBY": {
                 "floor": 1,
                 "name": "Main Lobby",
                 "status": "safe",
                 "occupancy": 38
             },
+
             "F2-NORTH": {
                 "floor": 2,
                 "name": "North Wing",
                 "status": "safe",
                 "occupancy": 47
             },
+
             "F3-EAST": {
                 "floor": 3,
                 "name": "East Wing",
                 "status": "safe",
                 "occupancy": 51
             },
+
             "F4-PREMIUM": {
                 "floor": 4,
                 "name": "Premium Wing",
@@ -132,24 +286,28 @@ def initialize_hotel():
         },
 
         "access_points": {
+
             "AP-01": {
                 "floor": 1,
                 "zone": "F1-LOBBY",
                 "name": "Lobby AP",
                 "connected": 38
             },
+
             "AP-02": {
                 "floor": 2,
                 "zone": "F2-NORTH",
                 "name": "North Wing AP",
                 "connected": 47
             },
+
             "AP-03": {
                 "floor": 3,
                 "zone": "F3-EAST",
                 "name": "East Wing AP",
                 "connected": 51
             },
+
             "AP-04": {
                 "floor": 4,
                 "zone": "F4-PREMIUM",
@@ -159,6 +317,7 @@ def initialize_hotel():
         },
 
         "persons": {
+
             "GUEST-001": {
                 "name": "Demo Guest",
                 "floor": 3,
@@ -222,7 +381,10 @@ def initialize_hotel():
     for key, value in defaults.items():
 
         if key not in hotel:
-            set_hotel_value(f"/hotel/{key}", value)
+            set_hotel_value(
+                f"/hotel/{key}",
+                value
+            )
 
 
 initialize_hotel()
@@ -260,12 +422,18 @@ def guest_page(tag_id):
 # API — HOTEL DATA
 # ============================================================
 
-@app.route("/api/hotel-data", methods=["GET"])
+@app.route(
+    "/api/hotel-data",
+    methods=["GET"]
+)
 def hotel_data():
 
     hotel = get_hotel()
 
-    persons = hotel.get("persons", {})
+    persons = hotel.get(
+        "persons",
+        {}
+    )
 
     connected = sum(
         1
@@ -280,6 +448,7 @@ def hotel_data():
     )
 
     hotel["connected_devices"] = connected
+
     hotel["online_devices"] = online
 
     return jsonify(hotel)
@@ -289,18 +458,43 @@ def hotel_data():
 # API — SYSTEM STATUS
 # ============================================================
 
-@app.route("/api/system-status", methods=["GET"])
+@app.route(
+    "/api/system-status",
+    methods=["GET"]
+)
 def system_status():
 
     hotel = get_hotel()
 
     return jsonify({
-        "status": "critical" if hotel.get("crisis_active") else "operational",
-        "hotel": hotel.get("name", "The Grand Delhi"),
-        "wifi": hotel.get("wifi_network"),
-        "connected_devices": hotel.get("connected_devices", 0),
-        "last_event": hotel.get("last_event"),
-        "last_event_time": hotel.get("last_event_time")
+
+        "status": (
+            "critical"
+            if hotel.get("crisis_active")
+            else "operational"
+        ),
+
+        "hotel": hotel.get(
+            "name",
+            "The Grand Delhi"
+        ),
+
+        "wifi": hotel.get(
+            "wifi_network"
+        ),
+
+        "connected_devices": hotel.get(
+            "connected_devices",
+            0
+        ),
+
+        "last_event": hotel.get(
+            "last_event"
+        ),
+
+        "last_event_time": hotel.get(
+            "last_event_time"
+        )
     })
 
 
@@ -308,13 +502,27 @@ def system_status():
 # API — SIMULATE WIFI CONNECTION
 # ============================================================
 
-@app.route("/api/connect-device", methods=["POST"])
+@app.route(
+    "/api/connect-device",
+    methods=["POST"]
+)
 def connect_device():
 
-    data = request.get_json(silent=True) or {}
+    data = request.get_json(
+        silent=True
+    ) or {}
 
-    name = data.get("name", "Guest")
-    floor = int(data.get("floor", random.randint(1, 4)))
+    name = data.get(
+        "name",
+        "Guest"
+    )
+
+    floor = int(
+        data.get(
+            "floor",
+            random.randint(1, 4)
+        )
+    )
 
     zone_map = {
         1: "F1-LOBBY",
@@ -330,19 +538,33 @@ def connect_device():
 
     device_id = generate_device_id()
 
-    tag_id = "GUEST-" + uuid.uuid4().hex[:6].upper()
+    tag_id = (
+        "GUEST-"
+        + uuid.uuid4().hex[:6].upper()
+    )
 
     person = {
+
         "name": name,
+
         "floor": floor,
+
         "zone": zone,
+
         "room": f"{floor}0{random.randint(1, 9)}",
+
         "role": "guest",
+
         "special_needs": "none",
+
         "language": "English",
+
         "device_id": device_id,
+
         "wifi_connected": True,
+
         "online": True,
+
         "last_seen": now()
     }
 
@@ -355,13 +577,19 @@ def connect_device():
     db.reference(
         "/hotel/connected_devices"
     ).set(
-        hotel.get("connected_devices", 0) + 1
+        hotel.get(
+            "connected_devices",
+            0
+        ) + 1
     )
 
     db.reference(
         "/hotel/occupancy"
     ).set(
-        hotel.get("occupancy", 0) + 1
+        hotel.get(
+            "occupancy",
+            0
+        ) + 1
     )
 
     db.reference(
@@ -377,12 +605,19 @@ def connect_device():
     )
 
     return jsonify({
+
         "status": "connected",
+
         "tag_id": tag_id,
+
         "device_id": device_id,
+
         "floor": floor,
+
         "zone": zone,
-        "message": "Guest connected to CrisisSync safety network."
+
+        "message":
+            "Guest connected to CrisisSync safety network."
     })
 
 
@@ -390,7 +625,10 @@ def connect_device():
 # API — DISCONNECT DEVICE
 # ============================================================
 
-@app.route("/api/disconnect-device/<tag_id>", methods=["POST"])
+@app.route(
+    "/api/disconnect-device/<tag_id>",
+    methods=["POST"]
+)
 def disconnect_device(tag_id):
 
     person = db.reference(
@@ -398,12 +636,15 @@ def disconnect_device(tag_id):
     ).get()
 
     if not person:
+
         return jsonify({
             "error": "Device not found"
         }), 404
 
     person["wifi_connected"] = False
+
     person["online"] = False
+
     person["last_seen"] = now()
 
     db.reference(
@@ -411,7 +652,9 @@ def disconnect_device(tag_id):
     ).set(person)
 
     return jsonify({
+
         "status": "disconnected",
+
         "tag_id": tag_id
     })
 
@@ -420,10 +663,15 @@ def disconnect_device(tag_id):
 # API — SIMULATE SENSOR EVENT
 # ============================================================
 
-@app.route("/api/simulate-event", methods=["POST"])
+@app.route(
+    "/api/simulate-event",
+    methods=["POST"]
+)
 def simulate_event():
 
-    data = request.get_json(silent=True) or {}
+    data = request.get_json(
+        silent=True
+    ) or {}
 
     event_type = data.get(
         "type",
@@ -450,11 +698,19 @@ def simulate_event():
     )
 
     event = {
-        "id": "EVT-" + uuid.uuid4().hex[:8].upper(),
+
+        "id":
+            "EVT-"
+            + uuid.uuid4().hex[:8].upper(),
+
         "type": event_type,
+
         "floor": floor,
+
         "zone": zone,
+
         "severity": severity,
+
         "timestamp": now()
     }
 
@@ -519,7 +775,9 @@ def simulate_event():
         )
 
     return jsonify({
+
         "status": "event_received",
+
         "event": event
     })
 
@@ -555,35 +813,17 @@ def trigger_crisis_internal(
         + uuid.uuid4().hex[:5].upper()
     )
 
-    # Gemini analysis
-    try:
-
-        analysis = analyze_crisis(
-            floor,
+    analysis = analyze_crisis(
+        floor,
+        (
             danger_zones[0]
             if danger_zones
-            else "Unknown",
-            crisis_type,
-            people_count
-        )
-
-    except Exception:
-
-        analysis = {
-            "severity": max(
-                1,
-                min(
-                    5,
-                    round(sensor_severity / 20)
-                )
-            ),
-            "immediate_action":
-                "Evacuate affected zone immediately.",
-            "zones_to_evacuate":
-                danger_zones,
-            "estimated_time_minutes":
-                5
-        }
+            else "Unknown"
+        ),
+        crisis_type,
+        people_count,
+        sensor_severity
+    )
 
     final_severity = max(
         int(
@@ -629,6 +869,7 @@ def trigger_crisis_internal(
     for zone in danger_zones:
 
         if zone in zones:
+
             zones[zone]["status"] = "danger"
 
     db.reference(
@@ -688,7 +929,9 @@ def trigger_crisis_internal(
     ).set(now())
 
     return {
+
         "incident_id": incident_id,
+
         "analysis": analysis
     }
 
@@ -747,11 +990,15 @@ def trigger_crisis():
     )
 
     return jsonify({
+
         "status": "crisis_triggered",
+
         "incident_id":
             result["incident_id"],
+
         "analysis":
             result["analysis"],
+
         "people_count":
             people_count
     })
@@ -785,41 +1032,47 @@ def get_route(tag_id):
     )
 
     route = get_safe_route(
-        person.get("floor", 1),
-        person.get("zone", ""),
+
+        person.get(
+            "floor",
+            1
+        ),
+
+        person.get(
+            "zone",
+            ""
+        ),
+
         person.get(
             "special_needs",
             "none"
         ),
+
         danger_zones
     )
 
-    try:
-
-        instructions = get_guest_instructions(
-            route,
-            person.get(
-                "language",
-                "English"
-            )
+    instructions = get_guest_instructions(
+        route,
+        person.get(
+            "language",
+            "English"
         )
-
-    except Exception:
-
-        instructions = (
-            "Please remain calm and "
-            "follow the highlighted safe route."
-        )
+    )
 
     return jsonify({
+
         "route": route,
+
         "instructions": instructions,
+
         "person": person,
+
         "crisis_active":
             hotel.get(
                 "crisis_active",
                 False
             ),
+
         "crisis_type":
             hotel.get(
                 "crisis_type",
@@ -841,6 +1094,7 @@ def responder_brief():
     hotel = get_hotel()
 
     if not hotel:
+
         return jsonify({
             "error": "No hotel data"
         }), 404
@@ -868,58 +1122,59 @@ def responder_brief():
         ]
     )
 
-    try:
+    brief = get_responder_brief(
 
-        brief = get_responder_brief(
-            hotel.get(
-                "crisis_type",
-                "fire"
-            ),
-            hotel.get(
-                "crisis_floor",
-                3
-            ),
-            hotel.get(
-                "danger_zones",
-                []
-            ),
-            len(active_persons),
-            needs_help
-        )
+        hotel.get(
+            "crisis_type",
+            "fire"
+        ),
 
-    except Exception:
+        hotel.get(
+            "crisis_floor",
+            3
+        ),
 
-        brief = (
-            "Emergency response active. "
-            "Proceed to the affected zone "
-            "and follow the recommended "
-            "evacuation route."
-        )
+        hotel.get(
+            "danger_zones",
+            []
+        ),
+
+        len(active_persons),
+
+        needs_help
+    )
 
     return jsonify({
+
         "brief": brief,
+
         "incident_id":
             hotel.get(
                 "incident_id",
                 ""
             ),
+
         "crisis_type":
             hotel.get(
                 "crisis_type",
                 ""
             ),
+
         "floor":
             hotel.get(
                 "crisis_floor",
                 0
             ),
+
         "danger_zones":
             hotel.get(
                 "danger_zones",
                 []
             ),
+
         "total_persons":
             len(active_persons),
+
         "needs_assistance":
             needs_help
     })
@@ -1024,7 +1279,6 @@ def telemetry_loop():
     Simulates normal hotel network activity.
 
     This does NOT fake an emergency continuously.
-    It simply makes the dashboard feel alive.
 
     Later this can be replaced with:
         - real Wi-Fi controller
@@ -1049,7 +1303,6 @@ def telemetry_loop():
                     {}
                 )
 
-                # Small realistic occupancy movement.
                 for floor_id in floors:
 
                     current = floors[
@@ -1086,7 +1339,6 @@ def telemetry_loop():
                     "/hotel/floors"
                 ).set(floors)
 
-            # Update online sessions.
             persons = hotel.get(
                 "persons",
                 {}
@@ -1100,8 +1352,6 @@ def telemetry_loop():
 
                     person["last_seen"] = now()
 
-                    # Very small chance of temporary
-                    # connection fluctuation.
                     if random.random() < 0.03:
 
                         person["online"] = not person.get(
@@ -1131,12 +1381,20 @@ def telemetry_loop():
 # START TELEMETRY THREAD
 # ============================================================
 
-telemetry_thread = threading.Thread(
-    target=telemetry_loop,
-    daemon=True
-)
+# Vercel/serverless functions should not start
+# a permanent background thread.
+#
+# Local development keeps the existing
+# telemetry simulation.
 
-telemetry_thread.start()
+if not os.getenv("VERCEL"):
+
+    telemetry_thread = threading.Thread(
+        target=telemetry_loop,
+        daemon=True
+    )
+
+    telemetry_thread.start()
 
 
 # ============================================================
@@ -1146,19 +1404,47 @@ telemetry_thread.start()
 if __name__ == "__main__":
 
     print()
+
     print("=" * 60)
-    print("        CRISISSYNC AI — LOCAL SAFETY NETWORK")
+
+    print(
+        "        CRISISSYNC AI — LOCAL SAFETY NETWORK"
+    )
+
     print("=" * 60)
+
     print()
-    print("Hotel      : The Grand Delhi")
-    print("Wi-Fi      : GRAND_DELHI_GUEST")
-    print("Mode       : Local Simulation")
+
+    print(
+        "Hotel      : The Grand Delhi"
+    )
+
+    print(
+        "Wi-Fi      : GRAND_DELHI_GUEST"
+    )
+
+    print(
+        "Mode       : Local Simulation"
+    )
+
     print()
-    print("Staff      : http://127.0.0.1:5000/staff")
-    print("Responder  : http://127.0.0.1:5000/responder")
-    print("Guest Demo : http://127.0.0.1:5000/guest/GUEST-001")
+
+    print(
+        "Staff      : http://127.0.0.1:5000/staff"
+    )
+
+    print(
+        "Responder  : http://127.0.0.1:5000/responder"
+    )
+
+    print(
+        "Guest Demo : http://127.0.0.1:5000/guest/GUEST-001"
+    )
+
     print()
+
     print("=" * 60)
+
     print()
 
     app.run(

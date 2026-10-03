@@ -2,419 +2,600 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Responder Brief - CrisisSync</title>
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
+    <title>CrisisSync — Responder</title>
+
     <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
+        * {
+            box-sizing: border-box;
+        }
 
         body {
-            background: #0d0d0d;
-            font-family: Arial, sans-serif;
+            margin: 0;
+            font-family: Arial, Helvetica, sans-serif;
+            background: #f5f7fa;
+            color: #1f2937;
+        }
+
+        .container {
+            max-width: 1100px;
+            margin: 0 auto;
+            padding: 24px;
+        }
+
+        .header {
+            background: #111827;
             color: white;
-            min-height: 100vh;
+            border-radius: 14px;
+            padding: 22px;
+            margin-bottom: 20px;
         }
 
-        .top {
-            background: #111;
-            padding: 14px 20px;
-            border-bottom: 1px solid #222;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
+        .header h1 {
+            margin: 0 0 6px;
         }
 
-        .brand {
-            font-size: 18px;
-            font-weight: bold;
-            color: #ff3333;
+        .header p {
+            margin: 0;
+            opacity: .8;
         }
 
-        .brand span { color: white; }
-
-        .nav a {
-            margin-left: 12px;
-            text-decoration: none;
-            color: #777;
-            font-size: 13px;
-            padding: 6px 14px;
-            border-radius: 6px;
-            background: #1e1e1e;
+        .card {
+            background: white;
+            border-radius: 14px;
+            padding: 22px;
+            margin-bottom: 18px;
+            box-shadow: 0 2px 10px rgba(0,0,0,.06);
         }
 
-        .nav a:hover { color: white; }
-        .nav a.here {
-            background: #ff3333;
-            color: white;
+        .grid {
+            display: grid;
+            grid-template-columns:
+                repeat(auto-fit, minmax(200px, 1fr));
+            gap: 14px;
         }
 
-        .content { padding: 20px; }
-
-        /* transit banner */
-        .transit-bar {
-            background: #1a1200;
-            border: 1px solid #3a2a00;
+        .info {
+            background: #f9fafb;
             border-radius: 10px;
-            padding: 14px 18px;
-            margin-bottom: 16px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
+            padding: 15px;
         }
 
-        .transit-bar p {
+        .label {
+            display: block;
+            color: #6b7280;
             font-size: 13px;
-            color: #ffaa00;
+            margin-bottom: 5px;
         }
 
-        .transit-bar span {
-            font-size: 22px;
+        .value {
+            font-weight: 600;
+        }
+
+        .status {
+            display: inline-block;
+            padding: 8px 14px;
+            border-radius: 999px;
+            background: #dcfce7;
+            color: #166534;
             font-weight: bold;
-            color: #ffaa00;
         }
 
-        /* no crisis state */
-        .no-crisis {
-            text-align: center;
-            padding: 80px 20px;
+        .status.active {
+            background: #fee2e2;
+            color: #991b1b;
         }
 
-        .no-crisis h2 {
-            font-size: 20px;
-            color: #33cc33;
-            margin-bottom: 10px;
-        }
-
-        .no-crisis p {
-            color: #555;
-            font-size: 14px;
-        }
-
-        /* brief card */
-        .brief-card {
-            background: #111;
-            border: 1px solid #222;
+        .brief {
+            white-space: pre-line;
+            background: #f9fafb;
             border-radius: 10px;
             padding: 18px;
-            margin-bottom: 14px;
-            display: none;
-        }
-
-        .brief-card h3 {
-            font-size: 11px;
-            color: #666;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            margin-bottom: 14px;
-        }
-
-        /* sections inside brief */
-        .brief-section {
-            margin-bottom: 14px;
-            padding-bottom: 14px;
-            border-bottom: 1px solid #1e1e1e;
-        }
-
-        .brief-section:last-child {
-            border-bottom: none;
-            margin-bottom: 0;
-            padding-bottom: 0;
-        }
-
-        .brief-section h4 {
-            font-size: 11px;
-            color: #ff8800;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            margin-bottom: 6px;
-        }
-
-        .brief-section p {
-            font-size: 14px;
-            color: #ccc;
             line-height: 1.6;
         }
 
-        /* severity indicator */
-        .severity-row {
-            display: flex;
-            gap: 6px;
-            margin-top: 6px;
-        }
-
-        .sev-block {
-            flex: 1;
-            height: 6px;
-            border-radius: 3px;
-            background: #222;
-        }
-
-        .sev-active { background: #ff3333; }
-
-        /* persons summary */
-        .persons-summary {
-            display: grid;
-            grid-template-columns: 1fr 1fr 1fr;
-            gap: 10px;
-            margin-bottom: 14px;
-            display: none;
-        }
-
-        .stat-box {
-            background: #111;
-            border: 1px solid #222;
-            border-radius: 10px;
+        .warning {
+            background: #fff7ed;
+            border-left: 4px solid #ea580c;
             padding: 14px;
-            text-align: center;
-        }
-
-        .stat-box h4 {
-            font-size: 11px;
-            color: #666;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-        }
-
-        .stat-box p {
-            font-size: 28px;
-            font-weight: bold;
-            margin-top: 6px;
-        }
-
-        .stat-total { color: #fff; }
-        .stat-help { color: #ff3333; }
-        .stat-staff { color: #ff8800; }
-
-        /* get brief button */
-        #getBriefBtn {
-            width: 100%;
-            padding: 14px;
-            background: #cc0000;
-            color: white;
-            border: none;
             border-radius: 8px;
-            font-size: 15px;
-            font-weight: bold;
+        }
+
+        .error {
+            background: #fee2e2;
+            border-left: 4px solid #dc2626;
+            padding: 14px;
+            border-radius: 8px;
+            color: #991b1b;
+        }
+
+        button {
+            border: 0;
+            border-radius: 9px;
+            padding: 11px 16px;
+            background: #111827;
+            color: white;
             cursor: pointer;
-            margin-bottom: 14px;
+            font-weight: 600;
         }
 
-        #getBriefBtn:hover { background: #aa0000; }
-        #getBriefBtn:disabled { background: #333; cursor: not-allowed; }
+        button:hover {
+            opacity: .9;
+        }
 
-        .loading-text {
+        .loading {
+            color: #6b7280;
+        }
+
+        .footer {
             text-align: center;
-            color: #555;
+            color: #6b7280;
             font-size: 13px;
-            padding: 10px;
-            display: none;
-        }
-
-        /* last updated */
-        .updated-tag {
-            text-align: center;
-            font-size: 11px;
-            color: #444;
-            margin-top: 10px;
+            margin-top: 25px;
         }
     </style>
 </head>
+
 <body>
 
-<div class="top">
-    <div class="brand">Crisis<span>Sync</span> AI</div>
-    <div class="nav">
-        <a href="/staff">Staff</a>
-        <a href="/responder" class="here">Responder</a>
-        <a href="/guest/TAG-001">Guest View</a>
+<div class="container">
+
+    <div class="header">
+        <h1>CrisisSync Responder</h1>
+        <p>
+            The Grand Delhi — Emergency Response Dashboard
+        </p>
     </div>
+
+
+    <div class="card">
+
+        <div
+            id="status"
+            class="status"
+        >
+            Checking system status...
+        </div>
+
+        <div
+            id="loading"
+            class="loading"
+            style="margin-top:15px;"
+        >
+            Loading responder information...
+        </div>
+
+        <div
+            id="error"
+            class="error"
+            style="display:none; margin-top:15px;"
+        ></div>
+
+    </div>
+
+
+    <div
+        id="incident-card"
+        class="card"
+        style="display:none;"
+    >
+
+        <h2>Current Incident</h2>
+
+        <div class="grid">
+
+            <div class="info">
+                <span class="label">
+                    Incident ID
+                </span>
+
+                <span
+                    id="incident-id"
+                    class="value"
+                >—</span>
+            </div>
+
+
+            <div class="info">
+                <span class="label">
+                    Crisis Type
+                </span>
+
+                <span
+                    id="crisis-type"
+                    class="value"
+                >—</span>
+            </div>
+
+
+            <div class="info">
+                <span class="label">
+                    Floor
+                </span>
+
+                <span
+                    id="crisis-floor"
+                    class="value"
+                >—</span>
+            </div>
+
+
+            <div class="info">
+                <span class="label">
+                    Total People
+                </span>
+
+                <span
+                    id="total-persons"
+                    class="value"
+                >—</span>
+            </div>
+
+
+            <div class="info">
+                <span class="label">
+                    Assistance Required
+                </span>
+
+                <span
+                    id="needs-assistance"
+                    class="value"
+                >—</span>
+            </div>
+
+
+            <div class="info">
+                <span class="label">
+                    Danger Zones
+                </span>
+
+                <span
+                    id="danger-zones"
+                    class="value"
+                >—</span>
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <div
+        id="brief-card"
+        class="card"
+        style="display:none;"
+    >
+
+        <h2>Responder Brief</h2>
+
+        <div
+            id="brief"
+            class="brief"
+        ></div>
+
+    </div>
+
+
+    <div
+        id="normal-card"
+        class="card"
+        style="display:none;"
+    >
+
+        <h2>System Status</h2>
+
+        <div class="warning">
+            No active emergency is currently registered.
+            Continue normal monitoring.
+        </div>
+
+    </div>
+
+
+    <div class="card">
+
+        <button
+            type="button"
+            onclick="loadResponderData()"
+        >
+            Refresh Responder Data
+        </button>
+
+    </div>
+
+
+    <div class="footer">
+        CrisisSync — Hotel Emergency Safety Network
+    </div>
+
 </div>
 
-<div class="content">
-
-    <!-- transit timer -->
-    <div class="transit-bar" id="transitBar" style="display:none">
-        <p>🚒 En route — Briefing ready before arrival</p>
-        <span id="timerDisplay">3:00</span>
-    </div>
-
-    <!-- no crisis -->
-    <div class="no-crisis" id="noCrisisScreen">
-        <h2>✅ No Active Emergency</h2>
-        <p>This page will update automatically<br>
-        when a crisis is declared.</p>
-        <br>
-        <p style="color:#333; font-size:12px;">Checking every 5 seconds...</p>
-    </div>
-
-    <!-- stats row -->
-    <div class="persons-summary" id="statsRow">
-        <div class="stat-box">
-            <h4>Total Tracked</h4>
-            <p class="stat-total" id="totalCount">0</p>
-        </div>
-        <div class="stat-box">
-            <h4>Need Help</h4>
-            <p class="stat-help" id="helpCount">0</p>
-        </div>
-        <div class="stat-box">
-            <h4>Staff Active</h4>
-            <p class="stat-staff" id="staffCount">0</p>
-        </div>
-    </div>
-
-    <!-- get brief button -->
-    <button id="getBriefBtn" style="display:none" onclick="loadBrief()">
-        📋 Generate Tactical Brief with Gemini AI
-    </button>
-
-    <div class="loading-text" id="loadingText">
-        Gemini generating tactical brief...
-    </div>
-
-    <!-- brief card -->
-    <div class="brief-card" id="briefCard">
-        <h3>⚡ Gemini Tactical Brief</h3>
-        <div id="briefContent"></div>
-    </div>
-
-    <div class="updated-tag" id="updatedTag"></div>
-
-</div>
 
 <script>
-    let crisisActive = false
-    let timerInterval = null
 
-    // check crisis every 5 seconds
-    async function checkCrisis() {
+    function setText(
+        elementId,
+        value
+    ) {
+
+        const element =
+            document.getElementById(
+                elementId
+            );
+
+        if (element) {
+
+            element.textContent =
+                value ?? "—";
+
+        }
+    }
+
+
+    function showError(
+        message
+    ) {
+
+        const element =
+            document.getElementById(
+                "error"
+            );
+
+        element.textContent =
+            message;
+
+        element.style.display =
+            "block";
+    }
+
+
+    function hideError() {
+
+        document
+            .getElementById(
+                "error"
+            )
+            .style.display =
+            "none";
+    }
+
+
+    async function loadResponderData() {
+
+        hideError();
+
+        document
+            .getElementById(
+                "loading"
+            )
+            .style.display =
+            "block";
+
         try {
-            let res = await fetch('/api/hotel-data')
-            let data = await res.json()
 
-            if (data.crisis_active && !crisisActive) {
-                crisisActive = true
-                showCrisisUI(data)
-            } else if (!data.crisis_active) {
-                crisisActive = false
-                showNoCrisis()
+            /*
+             * First check hotel state.
+             */
+
+            const hotelResponse =
+                await fetch(
+                    "/api/hotel-data"
+                );
+
+            const hotel =
+                await hotelResponse.json();
+
+
+            if (!hotelResponse.ok) {
+
+                throw new Error(
+                    hotel.error ||
+                    "Unable to load hotel data."
+                );
+
             }
-        } catch(e) {
-            console.log('check error', e)
+
+
+            const crisisActive =
+                Boolean(
+                    hotel.crisis_active
+                );
+
+
+            const status =
+                document.getElementById(
+                    "status"
+                );
+
+
+            if (crisisActive) {
+
+                status.textContent =
+                    "EMERGENCY ACTIVE";
+
+                status.classList.add(
+                    "active"
+                );
+
+            } else {
+
+                status.textContent =
+                    "SYSTEM OPERATIONAL";
+
+                status.classList.remove(
+                    "active"
+                );
+
+            }
+
+
+            /*
+             * Responder brief.
+             */
+
+            const response =
+                await fetch(
+                    "/api/responder-brief"
+                );
+
+            const data =
+                await response.json();
+
+
+            if (!response.ok) {
+
+                throw new Error(
+                    data.error ||
+                    "Unable to load responder brief."
+                );
+
+            }
+
+
+            if (crisisActive) {
+
+                document
+                    .getElementById(
+                        "incident-card"
+                    )
+                    .style.display =
+                    "block";
+
+
+                document
+                    .getElementById(
+                        "brief-card"
+                    )
+                    .style.display =
+                    "block";
+
+
+                document
+                    .getElementById(
+                        "normal-card"
+                    )
+                    .style.display =
+                    "none";
+
+
+                setText(
+                    "incident-id",
+                    data.incident_id
+                );
+
+
+                setText(
+                    "crisis-type",
+                    data.crisis_type
+                );
+
+
+                setText(
+                    "crisis-floor",
+                    data.floor
+                );
+
+
+                setText(
+                    "total-persons",
+                    data.total_persons
+                );
+
+
+                setText(
+                    "needs-assistance",
+                    data.needs_assistance
+                );
+
+
+                const zones =
+                    data.danger_zones || [];
+
+
+                setText(
+                    "danger-zones",
+                    zones.length
+                        ? zones.join(", ")
+                        : "None reported"
+                );
+
+
+                setText(
+                    "brief",
+                    data.brief ||
+                    "Responder brief unavailable."
+                );
+
+
+            } else {
+
+                document
+                    .getElementById(
+                        "incident-card"
+                    )
+                    .style.display =
+                    "none";
+
+
+                document
+                    .getElementById(
+                        "brief-card"
+                    )
+                    .style.display =
+                    "none";
+
+
+                document
+                    .getElementById(
+                        "normal-card"
+                    )
+                    .style.display =
+                    "block";
+
+            }
+
+
+        } catch (error) {
+
+            console.error(
+                "Responder data error:",
+                error
+            );
+
+            showError(
+                error.message ||
+                "Unable to connect to CrisisSync."
+            );
+
+        } finally {
+
+            document
+                .getElementById(
+                    "loading"
+                )
+                .style.display =
+                "none";
+
         }
     }
 
-    function showNoCrisis() {
-        document.getElementById('noCrisisScreen').style.display = 'block'
-        document.getElementById('statsRow').style.display = 'none'
-        document.getElementById('getBriefBtn').style.display = 'none'
-        document.getElementById('briefCard').style.display = 'none'
-        document.getElementById('transitBar').style.display = 'none'
-        if (timerInterval) clearInterval(timerInterval)
-    }
 
-    function showCrisisUI(data) {
-        document.getElementById('noCrisisScreen').style.display = 'none'
+    loadResponderData();
 
-        // show transit timer
-        document.getElementById('transitBar').style.display = 'flex'
-        startTimer(180)
 
-        // update stats
-        let persons = data.persons || {}
-        let total = Object.keys(persons).length
-        let needHelp = Object.values(persons)
-            .filter(p => p.special_needs && p.special_needs !== 'none').length
-        let staff = Object.values(persons)
-            .filter(p => p.type === 'staff').length
+    /*
+     * Keep responder dashboard updated.
+     */
 
-        document.getElementById('totalCount').textContent = total
-        document.getElementById('helpCount').textContent = needHelp
-        document.getElementById('staffCount').textContent = staff
+    setInterval(
+        loadResponderData,
+        10000
+    );
 
-        document.getElementById('statsRow').style.display = 'grid'
-        document.getElementById('getBriefBtn').style.display = 'block'
-    }
-
-    // countdown timer - 3 min transit
-    function startTimer(seconds) {
-        if (timerInterval) clearInterval(timerInterval)
-        let remaining = seconds
-        timerInterval = setInterval(() => {
-            let m = Math.floor(remaining / 60)
-            let s = remaining % 60
-            document.getElementById('timerDisplay').textContent =
-                m + ':' + (s < 10 ? '0' : '') + s
-            remaining--
-            if (remaining < 0) clearInterval(timerInterval)
-        }, 1000)
-    }
-
-    // load gemini brief
-    async function loadBrief() {
-        let btn = document.getElementById('getBriefBtn')
-        btn.disabled = true
-        btn.textContent = 'Generating...'
-        document.getElementById('loadingText').style.display = 'block'
-
-        try {
-            let res = await fetch('/api/responder-brief')
-            let data = await res.json()
-
-            // parse brief into sections
-            let brief = data.brief
-            let sections = brief.split('\n')
-            let html = ''
-
-            sections.forEach(line => {
-                line = line.trim()
-                if (!line) return
-
-                if (line.startsWith('SITUATION:')) {
-                    html += `<div class="brief-section">
-                        <h4>Situation</h4>
-                        <p>${line.replace('SITUATION:', '').trim()}</p>
-                    </div>`
-                } else if (line.startsWith('ENTRY POINT:')) {
-                    html += `<div class="brief-section">
-                        <h4>Entry Point</h4>
-                        <p>${line.replace('ENTRY POINT:', '').trim()}</p>
-                    </div>`
-                } else if (line.startsWith('KEY RISKS:')) {
-                    html += `<div class="brief-section">
-                        <h4>Key Risks</h4>
-                        <p>`
-                } else if (line.startsWith('PRIORITY RESCUE:')) {
-                    html += `</p></div><div class="brief-section">
-                        <h4>Priority Rescue</h4>
-                        <p>${line.replace('PRIORITY RESCUE:', '').trim()}</p>
-                    </div>`
-                } else if (line.startsWith('SAFE ZONES:')) {
-                    html += `<div class="brief-section">
-                        <h4>Safe Zones</h4>
-                        <p>${line.replace('SAFE ZONES:', '').trim()}</p>
-                    </div>`
-                } else if (line.startsWith('-')) {
-                    html += `• ${line.replace('-', '').trim()}<br>`
-                }
-            })
-
-            document.getElementById('briefContent').innerHTML = html
-            document.getElementById('briefCard').style.display = 'block'
-            document.getElementById('loadingText').style.display = 'none'
-            document.getElementById('updatedTag').textContent =
-                'Last updated: ' + new Date().toLocaleTimeString()
-
-            btn.textContent = '🔄 Refresh Brief'
-            btn.disabled = false
-
-        } catch(e) {
-            console.log('brief error', e)
-            btn.disabled = false
-        }
-    }
-
-    checkCrisis()
-    setInterval(checkCrisis, 5000)
 </script>
 
 </body>

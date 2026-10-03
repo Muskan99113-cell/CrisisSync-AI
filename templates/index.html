@@ -1,0 +1,3542 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>CrisisSync — Safety Operations</title>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+<style>
+:root{
+    --bg:#f5f7fb;
+    --surface:#fff;
+    --surface-2:#f8fafc;
+    --border:#e7ebf2;
+    --text:#111827;
+    --muted:#6b7280;
+    --primary:#315bea;
+    --primary-soft:#eef2ff;
+    --green:#16a34a;
+    --green-soft:#ecfdf3;
+    --amber:#d97706;
+    --red:#dc2626;
+    --red-soft:#fef2f2;
+    --shadow:0 10px 30px rgba(15,23,42,.06);
+    --sidebar:246px;
+    --radius:18px;
+}
+
+*{
+    box-sizing:border-box;
+    margin:0;
+    padding:0;
+}
+
+html{
+    scroll-behavior:smooth;
+}
+
+body{
+    font-family:"Inter",sans-serif;
+    background:var(--bg);
+    color:var(--text);
+    min-height:100vh;
+}
+
+button,input,select{
+    font:inherit;
+}
+
+button{
+    cursor:pointer;
+}
+
+/* ================= APP ================= */
+
+.app{
+    min-height:100vh;
+    display:flex;
+}
+
+/* ================= SIDEBAR ================= */
+
+.sidebar{
+    width:var(--sidebar);
+    min-height:100vh;
+    background:#101828;
+    color:#fff;
+    position:fixed;
+    left:0;
+    top:0;
+    bottom:0;
+    z-index:100;
+    display:flex;
+    flex-direction:column;
+    padding:22px 14px;
+    transition:transform .3s ease;
+}
+
+.brand{
+    display:flex;
+    align-items:center;
+    gap:11px;
+    padding:4px 10px 28px;
+}
+
+.brand-mark{
+    width:38px;
+    height:38px;
+    border-radius:12px;
+    display:grid;
+    place-items:center;
+    background:linear-gradient(135deg,#4f6ff5,#2748d7);
+    box-shadow:0 8px 22px rgba(49,91,234,.35);
+    font-weight:800;
+}
+
+.brand-name{
+    font-size:17px;
+    font-weight:800;
+}
+
+.brand-sub{
+    color:#8f9bb0;
+    font-size:9px;
+    font-weight:600;
+    letter-spacing:1.3px;
+    margin-top:3px;
+}
+
+.nav-label{
+    color:#667085;
+    text-transform:uppercase;
+    font-size:10px;
+    font-weight:700;
+    letter-spacing:1px;
+    padding:8px 12px;
+}
+
+.nav{
+    display:flex;
+    flex-direction:column;
+    gap:5px;
+}
+
+.nav-item{
+    border:0;
+    background:transparent;
+    color:#aab4c4;
+    width:100%;
+    display:flex;
+    align-items:center;
+    gap:12px;
+    padding:11px 12px;
+    border-radius:11px;
+    text-align:left;
+    font-size:13px;
+    transition:.2s;
+}
+
+.nav-item:hover{
+    background:rgba(255,255,255,.06);
+    color:#fff;
+    transform:translateX(2px);
+}
+
+.nav-item.active{
+    background:rgba(79,111,245,.16);
+    color:#fff;
+}
+
+.nav-icon{
+    width:19px;
+    text-align:center;
+    font-size:15px;
+}
+
+.sidebar-bottom{
+    margin-top:auto;
+}
+
+.system-mini{
+    background:rgba(255,255,255,.045);
+    border:1px solid rgba(255,255,255,.07);
+    border-radius:14px;
+    padding:13px;
+    margin:8px 4px;
+}
+
+.mini-row{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    font-size:11px;
+    color:#aab4c4;
+}
+
+.mini-status{
+    display:flex;
+    align-items:center;
+    gap:6px;
+    color:#86efac;
+    font-weight:700;
+}
+
+.pulse-dot{
+    width:7px;
+    height:7px;
+    border-radius:50%;
+    background:#22c55e;
+    box-shadow:0 0 0 0 rgba(34,197,94,.5);
+    animation:pulse 2s infinite;
+}
+
+@keyframes pulse{
+    0%{box-shadow:0 0 0 0 rgba(34,197,94,.5)}
+    70%{box-shadow:0 0 0 7px rgba(34,197,94,0)}
+    100%{box-shadow:0 0 0 0 rgba(34,197,94,0)}
+}
+
+/* ================= MAIN ================= */
+
+.main{
+    margin-left:var(--sidebar);
+    width:calc(100% - var(--sidebar));
+    min-height:100vh;
+}
+
+.topbar{
+    height:72px;
+    background:rgba(255,255,255,.88);
+    backdrop-filter:blur(16px);
+    border-bottom:1px solid var(--border);
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    padding:0 30px;
+    position:sticky;
+    top:0;
+    z-index:50;
+}
+
+.top-left{
+    display:flex;
+    align-items:center;
+    gap:18px;
+}
+
+.mobile-menu{
+    display:none;
+    border:0;
+    background:var(--surface-2);
+    width:38px;
+    height:38px;
+    border-radius:10px;
+}
+
+.hotel-info h2{
+    font-size:15px;
+    font-weight:750;
+}
+
+.hotel-info p{
+    font-size:11px;
+    color:var(--muted);
+    margin-top:3px;
+}
+
+.top-right{
+    display:flex;
+    align-items:center;
+    gap:12px;
+}
+
+.live-pill{
+    display:flex;
+    align-items:center;
+    gap:7px;
+    border:1px solid #d9f1df;
+    background:#f2fff5;
+    color:#15803d;
+    border-radius:999px;
+    padding:8px 12px;
+    font-size:11px;
+    font-weight:700;
+}
+
+.clock{
+    font-size:12px;
+    color:var(--muted);
+    min-width:65px;
+    text-align:right;
+}
+
+.avatar{
+    width:36px;
+    height:36px;
+    border-radius:50%;
+    display:grid;
+    place-items:center;
+    background:#e9edff;
+    color:#315bea;
+    font-size:12px;
+    font-weight:800;
+}
+
+/* ================= CONTENT ================= */
+
+.content{
+    padding:30px;
+    max-width:1800px;
+    margin:auto;
+}
+
+.page-heading{
+    display:flex;
+    align-items:flex-end;
+    justify-content:space-between;
+    gap:20px;
+    margin-bottom:25px;
+}
+
+.eyebrow{
+    color:var(--primary);
+    font-size:10px;
+    font-weight:800;
+    letter-spacing:1.3px;
+    text-transform:uppercase;
+    margin-bottom:7px;
+}
+
+.page-heading h1{
+    font-size:clamp(23px,3vw,31px);
+    letter-spacing:-1px;
+    line-height:1.1;
+}
+
+.page-heading p{
+    color:var(--muted);
+    font-size:12px;
+    margin-top:7px;
+}
+
+.actions{
+    display:flex;
+    gap:9px;
+    flex-wrap:wrap;
+}
+
+.btn{
+    border:1px solid var(--border);
+    background:white;
+    color:#344054;
+    border-radius:10px;
+    padding:10px 14px;
+    font-size:11px;
+    font-weight:700;
+    transition:.2s;
+}
+
+.btn:hover{
+    transform:translateY(-1px);
+    box-shadow:0 8px 18px rgba(15,23,42,.07);
+}
+
+.btn-primary{
+    background:var(--primary);
+    border-color:var(--primary);
+    color:white;
+}
+
+.btn-danger{
+    background:var(--red);
+    border-color:var(--red);
+    color:white;
+}
+
+/* ================= SECTIONS ================= */
+
+.dashboard-section{
+    display:none;
+}
+
+.dashboard-section.active-section{
+    display:block;
+}
+
+/* ================= STATS ================= */
+
+.stats{
+    display:grid;
+    grid-template-columns:repeat(4,minmax(0,1fr));
+    gap:14px;
+    margin-bottom:18px;
+}
+
+.stat-card{
+    background:var(--surface);
+    border:1px solid var(--border);
+    border-radius:var(--radius);
+    padding:18px;
+    box-shadow:var(--shadow);
+}
+
+.stat-top{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    margin-bottom:17px;
+}
+
+.stat-label{
+    color:var(--muted);
+    font-size:11px;
+    font-weight:600;
+}
+
+.stat-icon{
+    width:33px;
+    height:33px;
+    display:grid;
+    place-items:center;
+    border-radius:10px;
+    background:var(--primary-soft);
+    color:var(--primary);
+}
+
+.stat-value{
+    font-size:27px;
+    font-weight:800;
+}
+
+.stat-foot{
+    margin-top:8px;
+    font-size:10px;
+    color:var(--muted);
+}
+
+.stat-foot.good{color:var(--green)}
+.stat-foot.warning{color:var(--amber)}
+.stat-foot.danger{color:var(--red)}
+
+/* ================= GRID ================= */
+
+.main-grid{
+    display:grid;
+    grid-template-columns:minmax(0,1.7fr) minmax(300px,.85fr);
+    gap:18px;
+}
+
+.card{
+    background:var(--surface);
+    border:1px solid var(--border);
+    border-radius:var(--radius);
+    box-shadow:var(--shadow);
+    overflow:hidden;
+}
+
+.card-header{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    padding:18px 20px;
+    border-bottom:1px solid var(--border);
+}
+
+.card-title{
+    font-size:13px;
+    font-weight:800;
+}
+
+.card-subtitle{
+    font-size:10px;
+    color:var(--muted);
+    margin-top:4px;
+}
+
+.card-body{
+    padding:20px;
+}
+
+/* ================= MAP ================= */
+
+.map-toolbar{
+    display:flex;
+    align-items:center;
+    gap:7px;
+}
+
+.floor-btn{
+    border:1px solid var(--border);
+    background:white;
+    color:var(--muted);
+    padding:7px 10px;
+    border-radius:8px;
+    font-size:10px;
+    font-weight:700;
+}
+
+.floor-btn.active{
+    background:var(--primary);
+    border-color:var(--primary);
+    color:#fff;
+}
+
+.map{
+    position:relative;
+    min-height:440px;
+    border-radius:14px;
+    background:
+        linear-gradient(rgba(49,91,234,.035) 1px,transparent 1px),
+        linear-gradient(90deg,rgba(49,91,234,.035) 1px,transparent 1px),
+        #fbfcfe;
+    background-size:28px 28px;
+    border:1px solid #edf0f5;
+    overflow:hidden;
+}
+
+.map-title{
+    position:absolute;
+    top:15px;
+    left:17px;
+    background:white;
+    border:1px solid var(--border);
+    border-radius:8px;
+    padding:7px 10px;
+    font-size:10px;
+    font-weight:800;
+    z-index:5;
+}
+
+.map-building{
+    position:absolute;
+    width:78%;
+    height:68%;
+    left:11%;
+    top:17%;
+    background:white;
+    border:2px solid #dce2ec;
+    border-radius:13px;
+    box-shadow:0 14px 30px rgba(15,23,42,.06);
+}
+
+.corridor{
+    position:absolute;
+    background:#f1f4f8;
+}
+
+.corridor.horizontal{
+    height:52px;
+    left:4%;
+    right:4%;
+    top:42%;
+}
+
+.corridor.vertical{
+    width:50px;
+    top:5%;
+    bottom:5%;
+    left:47%;
+}
+
+.room{
+    position:absolute;
+    width:17%;
+    height:28%;
+    background:#f8fafc;
+    border:1px solid #dfe5ee;
+    border-radius:7px;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    align-items:center;
+    gap:4px;
+    font-size:9px;
+    font-weight:700;
+    transition:.25s;
+}
+
+.room:hover{
+    transform:translateY(-3px);
+    border-color:#9eaff5;
+}
+
+.room-1{left:5%;top:8%}
+.room-2{left:28%;top:8%}
+.room-3{right:28%;top:8%}
+.room-4{right:5%;top:8%}
+.room-5{left:5%;bottom:8%}
+.room-6{left:28%;bottom:8%}
+.room-7{right:28%;bottom:8%}
+.room-8{right:5%;bottom:8%}
+
+.room-dot{
+    width:7px;
+    height:7px;
+    background:#22c55e;
+    border-radius:50%;
+    box-shadow:0 0 0 4px rgba(34,197,94,.1);
+}
+
+.room-dot.warning{
+    background:#f59e0b;
+}
+
+.room-dot.danger{
+    background:#ef4444;
+    animation:dangerPulse 1.2s infinite;
+}
+
+@keyframes dangerPulse{
+    50%{box-shadow:0 0 0 8px rgba(239,68,68,0)}
+}
+
+.exit{
+    position:absolute;
+    background:#ecfdf3;
+    color:#15803d;
+    border:1px solid #bbf7d0;
+    padding:8px 11px;
+    border-radius:8px;
+    font-size:9px;
+    font-weight:800;
+    z-index:5;
+}
+
+.exit-left{
+    left:-25px;
+    top:45%;
+}
+
+.exit-right{
+    right:-25px;
+    top:45%;
+}
+
+.stairs{
+    position:absolute;
+    left:46%;
+    bottom:-25px;
+    background:#eff6ff;
+    color:#315bea;
+    border:1px solid #c7d7fe;
+    padding:7px 10px;
+    border-radius:8px;
+    font-size:9px;
+    font-weight:800;
+    z-index:5;
+}
+
+.map-legend{
+    position:absolute;
+    right:15px;
+    bottom:15px;
+    display:flex;
+    gap:12px;
+    padding:8px 10px;
+    background:rgba(255,255,255,.92);
+    border:1px solid var(--border);
+    border-radius:9px;
+    font-size:9px;
+    color:var(--muted);
+}
+
+.legend-item{
+    display:flex;
+    align-items:center;
+    gap:5px;
+}
+
+.legend-dot{
+    width:7px;
+    height:7px;
+    border-radius:50%;
+}
+
+/* ================= INCIDENT ================= */
+
+.incident-empty{
+    padding:30px 20px;
+    text-align:center;
+}
+
+.safe-icon{
+    width:48px;
+    height:48px;
+    margin:0 auto 13px;
+    border-radius:15px;
+    background:var(--green-soft);
+    display:grid;
+    place-items:center;
+    color:var(--green);
+    font-size:21px;
+}
+
+.incident-empty h3{
+    font-size:14px;
+    margin-bottom:6px;
+}
+
+.incident-empty p{
+    color:var(--muted);
+    font-size:10px;
+    line-height:1.6;
+}
+
+.incident-active{
+    display:none;
+}
+
+.incident-active.show{
+    display:block;
+}
+
+.incident-banner{
+    background:var(--red-soft);
+    border-bottom:1px solid #fee2e2;
+    padding:16px 20px;
+}
+
+.incident-label{
+    color:var(--red);
+    font-size:9px;
+    font-weight:800;
+    letter-spacing:1px;
+}
+
+.incident-type{
+    font-size:18px;
+    font-weight:800;
+    margin-top:5px;
+}
+
+.incident-details{
+    padding:18px 20px;
+}
+
+.severity-row{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    font-size:10px;
+    color:var(--muted);
+    margin-bottom:8px;
+}
+
+.severity-number{
+    color:var(--red);
+    font-weight:800;
+}
+
+.severity-bar{
+    height:7px;
+    background:#f1f3f7;
+    border-radius:999px;
+    overflow:hidden;
+}
+
+.severity-fill{
+    width:0;
+    height:100%;
+    background:var(--red);
+    border-radius:inherit;
+    transition:width .7s ease;
+}
+
+.incident-stats{
+    display:grid;
+    grid-template-columns:repeat(2,1fr);
+    gap:9px;
+    margin-top:17px;
+}
+
+.incident-stat{
+    background:var(--surface-2);
+    border:1px solid var(--border);
+    border-radius:11px;
+    padding:12px;
+}
+
+.incident-stat strong{
+    display:block;
+    font-size:18px;
+}
+
+.incident-stat span{
+    display:block;
+    font-size:9px;
+    color:var(--muted);
+    margin-top:3px;
+}
+
+/* ================= WIFI ================= */
+
+.wifi-box{
+    display:flex;
+    align-items:center;
+    gap:14px;
+    background:linear-gradient(135deg,#f5f7ff,#fbfcff);
+    border:1px solid #e5e9ff;
+    border-radius:14px;
+    padding:14px;
+    margin-bottom:15px;
+}
+
+.wifi-icon{
+    width:42px;
+    height:42px;
+    display:grid;
+    place-items:center;
+    border-radius:12px;
+    background:var(--primary-soft);
+    color:var(--primary);
+}
+
+.wifi-text strong{
+    display:block;
+    font-size:11px;
+}
+
+.wifi-text span{
+    color:var(--muted);
+    font-size:9px;
+}
+
+.wifi-number{
+    margin-left:auto;
+    font-size:21px;
+    font-weight:800;
+}
+
+.emergency-box{
+    margin-top:15px;
+    border:1px solid #fee2e2;
+    background:#fffafa;
+    border-radius:14px;
+    padding:15px;
+}
+
+.emergency-box h4{
+    color:#991b1b;
+    font-size:11px;
+    margin-bottom:5px;
+}
+
+.emergency-box p{
+    color:var(--muted);
+    font-size:9px;
+    line-height:1.5;
+    margin-bottom:11px;
+}
+
+.emergency-controls{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:8px;
+}
+
+.select{
+    width:100%;
+    border:1px solid var(--border);
+    background:white;
+    border-radius:9px;
+    padding:9px;
+    font-size:10px;
+    outline:none;
+}
+
+/* ================= LOWER ================= */
+
+.lower-grid{
+    display:grid;
+    grid-template-columns:1.15fr .85fr;
+    gap:18px;
+    margin-top:18px;
+}
+
+.floor-list{
+    display:flex;
+    flex-direction:column;
+    gap:12px;
+}
+
+.floor-row{
+    display:grid;
+    grid-template-columns:42px 1fr 70px;
+    align-items:center;
+    gap:12px;
+}
+
+.floor-number{
+    width:36px;
+    height:36px;
+    display:grid;
+    place-items:center;
+    border-radius:10px;
+    background:var(--primary-soft);
+    color:var(--primary);
+    font-size:11px;
+    font-weight:800;
+}
+
+.floor-info strong{
+    font-size:11px;
+}
+
+.floor-info span{
+    display:block;
+    color:var(--muted);
+    font-size:9px;
+    margin-top:3px;
+}
+
+.occupancy-track{
+    height:7px;
+    background:#edf0f4;
+    border-radius:999px;
+    overflow:hidden;
+    margin-top:7px;
+}
+
+.occupancy-fill{
+    height:100%;
+    width:0;
+    background:var(--primary);
+    border-radius:inherit;
+    transition:width .8s ease;
+}
+
+.floor-percent{
+    text-align:right;
+    font-size:10px;
+    font-weight:800;
+}
+
+/* ================= EVENTS ================= */
+
+.event-list{
+    max-height:245px;
+    overflow-y:auto;
+}
+
+.event-item{
+    display:flex;
+    gap:11px;
+    padding:12px 20px;
+    border-bottom:1px solid #f0f2f5;
+}
+
+.event-dot{
+    width:8px;
+    height:8px;
+    border-radius:50%;
+    background:var(--green);
+    margin-top:4px;
+    flex-shrink:0;
+}
+
+.event-dot.danger{background:var(--red)}
+.event-dot.warning{background:var(--amber)}
+
+.event-text{
+    flex:1;
+}
+
+.event-text strong{
+    display:block;
+    font-size:10px;
+}
+
+.event-text span{
+    display:block;
+    color:var(--muted);
+    font-size:9px;
+    margin-top:3px;
+}
+
+.event-time{
+    color:#98a2b3;
+    font-size:8px;
+}
+
+/* ================= EXTRA SIDEBAR PAGES ================= */
+
+.page-card{
+    background:white;
+    border:1px solid var(--border);
+    border-radius:18px;
+    box-shadow:var(--shadow);
+    padding:24px;
+}
+
+.page-card h2{
+    font-size:18px;
+    margin-bottom:7px;
+}
+
+.page-card > p{
+    color:var(--muted);
+    font-size:11px;
+    margin-bottom:20px;
+}
+
+.simple-grid{
+    display:grid;
+    grid-template-columns:repeat(3,1fr);
+    gap:14px;
+}
+
+.simple-box{
+    border:1px solid var(--border);
+    background:var(--surface-2);
+    padding:18px;
+    border-radius:14px;
+}
+
+.simple-box strong{
+    display:block;
+    font-size:13px;
+    margin-bottom:7px;
+}
+
+.simple-box span{
+    font-size:10px;
+    color:var(--muted);
+}
+
+.room-grid{
+    display:grid;
+    grid-template-columns:repeat(4,1fr);
+    gap:12px;
+}
+
+.room-card{
+    border:1px solid var(--border);
+    background:white;
+    border-radius:13px;
+    padding:16px;
+}
+
+.room-card strong{
+    font-size:14px;
+}
+
+.room-card span{
+    display:block;
+    color:var(--muted);
+    font-size:10px;
+    margin-top:6px;
+}
+
+/* ================= TOAST ================= */
+
+.toast-container{
+    position:fixed;
+    right:22px;
+    bottom:22px;
+    z-index:999;
+    display:flex;
+    flex-direction:column;
+    gap:8px;
+}
+
+.toast{
+    min-width:270px;
+    max-width:350px;
+    background:#101828;
+    color:white;
+    border-radius:12px;
+    padding:13px 15px;
+    box-shadow:0 18px 45px rgba(15,23,42,.22);
+    animation:toastIn .35s ease;
+    font-size:10px;
+}
+
+.toast strong{
+    display:block;
+    font-size:11px;
+    margin-bottom:3px;
+}
+
+.toast span{
+    color:#c6cfdd;
+}
+
+@keyframes toastIn{
+    from{
+        opacity:0;
+        transform:translateY(15px) scale(.97);
+    }
+    to{
+        opacity:1;
+        transform:translateY(0) scale(1);
+    }
+}
+
+/* ================= CRISIS ================= */
+
+body.crisis-mode{
+    --primary:#dc2626;
+    --primary-soft:#fef2f2;
+}
+
+body.crisis-mode .live-pill{
+    background:#fff1f2;
+    border-color:#fecdd3;
+    color:#be123c;
+}
+
+/* ================= RESPONSIVE ================= */
+
+@media(max-width:1200px){
+
+    .stats{
+        grid-template-columns:repeat(2,1fr);
+    }
+
+    .main-grid,
+    .lower-grid{
+        grid-template-columns:1fr;
+    }
+
+    .simple-grid{
+        grid-template-columns:1fr 1fr;
+    }
+}
+
+@media(max-width:800px){
+
+    :root{
+        --sidebar:0px;
+    }
+
+    .sidebar{
+        transform:translateX(-100%);
+        width:246px;
+    }
+
+    .sidebar.open{
+        transform:translateX(0);
+    }
+
+    .main{
+        margin-left:0;
+        width:100%;
+    }
+
+    .mobile-menu{
+        display:grid;
+        place-items:center;
+    }
+
+    .topbar{
+        padding:0 16px;
+    }
+
+    .content{
+        padding:20px 15px;
+    }
+
+    .page-heading{
+        align-items:flex-start;
+        flex-direction:column;
+    }
+
+    .clock{
+        display:none;
+    }
+
+    .map{
+        min-height:360px;
+    }
+
+    .room-grid{
+        grid-template-columns:repeat(2,1fr);
+    }
+}
+
+@media(max-width:520px){
+
+    .stats{
+        grid-template-columns:1fr;
+    }
+
+    .top-right .live-pill{
+        display:none;
+    }
+
+    .map-toolbar{
+        overflow-x:auto;
+    }
+
+    .map-building{
+        width:86%;
+        left:7%;
+    }
+
+    .room{
+        font-size:7px;
+    }
+
+    .simple-grid{
+        grid-template-columns:1fr;
+    }
+}
+</style>
+</head>
+
+<body>
+
+<div class="app">
+
+<!-- ======================================================
+SIDEBAR
+====================================================== -->
+
+<aside class="sidebar" id="sidebar">
+
+    <div class="brand">
+        <div class="brand-mark">◈</div>
+
+        <div>
+            <div class="brand-name">CrisisSync</div>
+            <div class="brand-sub">SAFETY OPERATIONS</div>
+        </div>
+    </div>
+
+    <div class="nav-label">Operations</div>
+
+    <nav class="nav">
+
+        <button class="nav-item active" data-section="overview">
+            <span class="nav-icon">▦</span>
+            Overview
+        </button>
+
+        <button class="nav-item" data-section="live">
+            <span class="nav-icon">◉</span>
+            Live Operations
+        </button>
+
+        <button class="nav-item" data-section="occupancy">
+            <span class="nav-icon">⌁</span>
+            Occupancy
+        </button>
+
+        <button class="nav-item" data-section="incidents">
+            <span class="nav-icon">⚠</span>
+            Incidents
+        </button>
+
+        <button class="nav-item" data-section="maps">
+            <span class="nav-icon">▧</span>
+            Floor Maps
+        </button>
+
+        <button class="nav-item" data-section="sensors">
+            <span class="nav-icon">⌁</span>
+            Sensors
+        </button>
+
+        <button class="nav-item" data-section="guests">
+            <span class="nav-icon">◎</span>
+            Guests
+        </button>
+
+        <button class="nav-item" data-section="reports">
+            <span class="nav-icon">▤</span>
+            Reports
+        </button>
+
+    </nav>
+
+    <div class="sidebar-bottom">
+
+        <div class="nav-label">System</div>
+
+        <button class="nav-item" data-section="settings">
+            <span class="nav-icon">⚙</span>
+            Settings
+        </button>
+
+        <div class="system-mini">
+
+            <div class="mini-row">
+
+                <span>Network</span>
+
+                <span class="mini-status">
+                    <span class="pulse-dot"></span>
+                    Online
+                </span>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</aside>
+
+
+<!-- ======================================================
+MAIN
+====================================================== -->
+
+<main class="main">
+
+<header class="topbar">
+
+    <div class="top-left">
+
+        <button
+            class="mobile-menu"
+            onclick="toggleSidebar()"
+        >
+            ☰
+        </button>
+
+        <div class="hotel-info">
+
+            <h2 id="hotelName">
+                The Grand Delhi
+            </h2>
+
+            <p>Safety Operations Center</p>
+
+        </div>
+
+    </div>
+
+    <div class="top-right">
+
+        <div class="live-pill">
+
+            <span class="pulse-dot"></span>
+
+            <span id="systemStatus">
+                SYSTEM ONLINE
+            </span>
+
+        </div>
+
+        <div class="clock" id="clock">
+            --:--:--
+        </div>
+
+        <div class="avatar">
+            OP
+        </div>
+
+    </div>
+
+</header>
+
+
+<section class="content">
+
+<!-- ======================================================
+OVERVIEW
+====================================================== -->
+
+<section
+    id="section-overview"
+    class="dashboard-section active-section"
+>
+
+    <div class="page-heading">
+
+        <div>
+
+            <div class="eyebrow">
+                LIVE OPERATIONS
+            </div>
+
+            <h1>
+                Hotel safety overview
+            </h1>
+
+            <p>
+                Real-time occupancy, network presence and incident intelligence.
+            </p>
+
+        </div>
+
+        <div class="actions">
+
+            <button
+                class="btn"
+                onclick="refreshData(true)"
+            >
+                ↻ Refresh
+            </button>
+
+            <button
+                class="btn btn-danger"
+                onclick="triggerDemoIncident()"
+            >
+                ⚠ Simulate Incident
+            </button>
+
+        </div>
+
+    </div>
+
+
+    <!-- STATS -->
+
+    <div class="stats">
+
+        <div class="stat-card">
+
+            <div class="stat-top">
+                <span class="stat-label">
+                    Current Occupancy
+                </span>
+
+                <div class="stat-icon">◉</div>
+            </div>
+
+            <div class="stat-value" id="occupancy">
+                0
+            </div>
+
+            <div class="stat-foot good">
+                ● Live hotel count
+            </div>
+
+        </div>
+
+
+        <div class="stat-card">
+
+            <div class="stat-top">
+                <span class="stat-label">
+                    Wi-Fi Connected
+                </span>
+
+                <div class="stat-icon">◌</div>
+            </div>
+
+            <div class="stat-value" id="connected">
+                0
+            </div>
+
+            <div class="stat-foot good">
+                ● Active safety sessions
+            </div>
+
+        </div>
+
+
+        <div class="stat-card">
+
+            <div class="stat-top">
+                <span class="stat-label">
+                    Active Alerts
+                </span>
+
+                <div class="stat-icon">!</div>
+            </div>
+
+            <div class="stat-value" id="alerts">
+                0
+            </div>
+
+            <div class="stat-foot" id="alertFoot">
+                No active incidents
+            </div>
+
+        </div>
+
+
+        <div class="stat-card">
+
+            <div class="stat-top">
+                <span class="stat-label">
+                    Network Health
+                </span>
+
+                <div class="stat-icon">✓</div>
+            </div>
+
+            <div class="stat-value">
+                98.7%
+            </div>
+
+            <div class="stat-foot good">
+                ● All core systems operational
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <!-- MAP + INCIDENT -->
+
+    <div class="main-grid">
+
+        <!-- MAP -->
+
+        <div class="card">
+
+            <div class="card-header">
+
+                <div>
+                    <div class="card-title">
+                        Live hotel map
+                    </div>
+
+                    <div class="card-subtitle">
+                        Occupancy and safety zones
+                    </div>
+                </div>
+
+                <div class="map-toolbar">
+
+                    <button class="floor-btn active" onclick="changeFloor(4,this)">
+                        F4
+                    </button>
+
+                    <button class="floor-btn" onclick="changeFloor(3,this)">
+                        F3
+                    </button>
+
+                    <button class="floor-btn" onclick="changeFloor(2,this)">
+                        F2
+                    </button>
+
+                    <button class="floor-btn" onclick="changeFloor(1,this)">
+                        F1
+                    </button>
+
+                </div>
+
+            </div>
+
+
+            <div class="card-body">
+
+                <div class="map">
+
+                    <div class="map-title">
+                        FLOOR <span id="mapFloor">4</span> · LIVE
+                    </div>
+
+                    <div class="map-building">
+
+                        <div class="corridor horizontal"></div>
+                        <div class="corridor vertical"></div>
+
+                        <div class="room room-1">
+                            <span class="room-number">401</span>
+                            <span class="room-dot"></span>
+                        </div>
+
+                        <div class="room room-2">
+                            <span class="room-number">402</span>
+                            <span class="room-dot"></span>
+                        </div>
+
+                        <div class="room room-3">
+                            <span class="room-number">403</span>
+                            <span class="room-dot"></span>
+                        </div>
+
+                        <div class="room room-4">
+                            <span class="room-number">404</span>
+                            <span class="room-dot"></span>
+                        </div>
+
+                        <div class="room room-5">
+                            <span class="room-number">405</span>
+                            <span class="room-dot"></span>
+                        </div>
+
+                        <div class="room room-6">
+                            <span class="room-number">406</span>
+                            <span class="room-dot"></span>
+                        </div>
+
+                        <div class="room room-7">
+                            <span class="room-number">407</span>
+                            <span class="room-dot"></span>
+                        </div>
+
+                        <div class="room room-8">
+                            <span class="room-number">408</span>
+                            <span class="room-dot"></span>
+                        </div>
+
+                        <div class="exit exit-left">
+                            EXIT A
+                        </div>
+
+                        <div class="exit exit-right">
+                            EXIT B
+                        </div>
+
+                        <div class="stairs">
+                            ⇩ STAIR C
+                        </div>
+
+                    </div>
+
+
+                    <div class="map-legend">
+
+                        <div class="legend-item">
+                            <span class="legend-dot" style="background:#22c55e"></span>
+                            Safe
+                        </div>
+
+                        <div class="legend-item">
+                            <span class="legend-dot" style="background:#f59e0b"></span>
+                            Warning
+                        </div>
+
+                        <div class="legend-item">
+                            <span class="legend-dot" style="background:#ef4444"></span>
+                            Danger
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <!-- INCIDENT -->
+
+        <div class="card">
+
+            <div class="card-header">
+
+                <div>
+                    <div class="card-title">
+                        Incident command
+                    </div>
+
+                    <div class="card-subtitle">
+                        AI-assisted safety status
+                    </div>
+                </div>
+
+                <span
+                    id="incidentBadge"
+                    class="live-pill"
+                    style="padding:6px 9px;font-size:9px;"
+                >
+                    CLEAR
+                </span>
+
+            </div>
+
+
+            <div class="incident-empty" id="incidentEmpty">
+
+                <div class="safe-icon">
+                    ✓
+                </div>
+
+                <h3>
+                    No active incident
+                </h3>
+
+                <p>
+                    CrisisSync is continuously monitoring
+                    network presence, occupancy and safety events.
+                </p>
+
+            </div>
+
+
+            <div class="incident-active" id="incidentActive">
+
+                <div class="incident-banner">
+
+                    <div class="incident-label">
+                        CRITICAL INCIDENT
+                    </div>
+
+                    <div class="incident-type" id="incidentType">
+                        FIRE DETECTED
+                    </div>
+
+                </div>
+
+
+                <div class="incident-details">
+
+                    <div class="severity-row">
+
+                        <span>Threat severity</span>
+
+                        <span
+                            class="severity-number"
+                            id="severityNumber"
+                        >
+                            0 / 5
+                        </span>
+
+                    </div>
+
+                    <div class="severity-bar">
+
+                        <div
+                            class="severity-fill"
+                            id="severityFill"
+                        ></div>
+
+                    </div>
+
+
+                    <div class="incident-stats">
+
+                        <div class="incident-stat">
+
+                            <strong id="incidentPeople">
+                                0
+                            </strong>
+
+                            <span>
+                                people affected
+                            </span>
+
+                        </div>
+
+                        <div class="incident-stat">
+
+                            <strong id="incidentFloor">
+                                —
+                            </strong>
+
+                            <span>
+                                affected floor
+                            </span>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+
+            <div style="padding:0 20px 20px;">
+
+                <div class="wifi-box">
+
+                    <div class="wifi-icon">
+                        ◌
+                    </div>
+
+                    <div class="wifi-text">
+
+                        <strong>
+                            Hotel safety network
+                        </strong>
+
+                        <span id="wifiName">
+                            GRAND_DELHI_GUEST
+                        </span>
+
+                    </div>
+
+                    <div
+                        class="wifi-number"
+                        id="wifiCount"
+                    >
+                        0
+                    </div>
+
+                </div>
+
+
+                <div class="emergency-box">
+
+                    <h4>
+                        Emergency simulation
+                    </h4>
+
+                    <p>
+                        Use this only for testing the live response workflow.
+                    </p>
+
+
+                    <div class="emergency-controls">
+
+                        <select
+                            class="select"
+                            id="incidentTypeSelect"
+                        >
+
+                            <option value="fire">
+                                🔥 Fire
+                            </option>
+
+                            <option value="gas leak">
+                                ☣ Gas leak
+                            </option>
+
+                            <option value="flood">
+                                🌊 Flood
+                            </option>
+
+                            <option value="power failure">
+                                ⚡ Power failure
+                            </option>
+
+                        </select>
+
+
+                        <select
+                            class="select"
+                            id="incidentFloorSelect"
+                        >
+
+                            <option value="4">
+                                Floor 4
+                            </option>
+
+                            <option value="3">
+                                Floor 3
+                            </option>
+
+                            <option value="2">
+                                Floor 2
+                            </option>
+
+                            <option value="1">
+                                Floor 1
+                            </option>
+
+                        </select>
+
+                    </div>
+
+
+                    <button
+                        class="btn btn-danger"
+                        style="width:100%;margin-top:8px;"
+                        onclick="triggerIncidentFromPanel()"
+                    >
+                        Activate simulation
+                    </button>
+
+
+                    <button
+                        class="btn"
+                        style="width:100%;margin-top:8px;display:none;"
+                        id="resetBtn"
+                        onclick="resetIncident()"
+                    >
+                        Resolve incident
+                    </button>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <!-- LOWER -->
+
+    <div class="lower-grid">
+
+        <div class="card">
+
+            <div class="card-header">
+
+                <div>
+
+                    <div class="card-title">
+                        Occupancy by floor
+                    </div>
+
+                    <div class="card-subtitle">
+                        Live presence estimation
+                    </div>
+
+                </div>
+
+                <span class="live-pill">
+                    <span class="pulse-dot"></span>
+                    LIVE
+                </span>
+
+            </div>
+
+            <div class="card-body">
+
+                <div
+                    class="floor-list"
+                    id="floorList"
+                ></div>
+
+            </div>
+
+        </div>
+
+
+        <div class="card">
+
+            <div class="card-header">
+
+                <div>
+
+                    <div class="card-title">
+                        Activity stream
+                    </div>
+
+                    <div class="card-subtitle">
+                        Latest network and safety events
+                    </div>
+
+                </div>
+
+            </div>
+
+            <div
+                class="event-list"
+                id="eventList"
+            >
+
+                <div class="event-item">
+
+                    <span class="event-dot"></span>
+
+                    <div class="event-text">
+
+                        <strong>
+                            System initialized
+                        </strong>
+
+                        <span>
+                            CrisisSync safety network is active.
+                        </span>
+
+                    </div>
+
+                    <span class="event-time">
+                        now
+                    </span>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</section>
+
+
+<!-- ======================================================
+LIVE OPERATIONS
+====================================================== -->
+
+<section id="section-live" class="dashboard-section">
+
+    <div class="page-card">
+
+        <h2>Live Operations</h2>
+
+        <p>
+            Real-time hotel operations and system monitoring.
+        </p>
+
+        <div class="simple-grid">
+
+            <div class="simple-box">
+                <strong>System Status</strong>
+                <span id="liveSystemStatus">Online</span>
+            </div>
+
+            <div class="simple-box">
+                <strong>Connected Devices</strong>
+                <span id="liveDevices">0</span>
+            </div>
+
+            <div class="simple-box">
+                <strong>Network Health</strong>
+                <span>98.7% operational</span>
+            </div>
+
+        </div>
+
+    </div>
+
+</section>
+
+
+<!-- ======================================================
+OCCUPANCY
+====================================================== -->
+
+<section id="section-occupancy" class="dashboard-section">
+
+    <div class="page-card">
+
+        <h2>Occupancy</h2>
+
+        <p>
+            Floor-wise occupancy and room presence.
+        </p>
+
+        <div id="occupancyPageList" class="simple-grid"></div>
+
+    </div>
+
+</section>
+
+
+<!-- ======================================================
+INCIDENTS
+====================================================== -->
+
+<section id="section-incidents" class="dashboard-section">
+
+    <div class="page-card">
+
+        <h2>Incidents</h2>
+
+        <p>
+            Current and recent safety incidents.
+        </p>
+
+        <div id="incidentPageContent"></div>
+
+        <button
+            class="btn btn-danger"
+            style="margin-top:20px;"
+            onclick="triggerDemoIncident()"
+        >
+            ⚠ Simulate Fire Incident
+        </button>
+
+    </div>
+
+</section>
+
+
+<!-- ======================================================
+FLOOR MAPS
+====================================================== -->
+
+<section id="section-maps" class="dashboard-section">
+
+    <div class="page-card">
+
+        <h2>Floor Maps</h2>
+
+        <p>
+            Select a floor to view its room numbers.
+        </p>
+
+        <div class="map-toolbar" style="margin-bottom:20px;">
+
+            <button class="floor-btn" onclick="openFloorMap(1)">
+                F1
+            </button>
+
+            <button class="floor-btn" onclick="openFloorMap(2)">
+                F2
+            </button>
+
+            <button class="floor-btn" onclick="openFloorMap(3)">
+                F3
+            </button>
+
+            <button class="floor-btn active" onclick="openFloorMap(4)">
+                F4
+            </button>
+
+        </div>
+
+        <div
+            id="floorRoomGrid"
+            class="room-grid"
+        ></div>
+
+    </div>
+
+</section>
+
+
+<!-- ======================================================
+SENSORS
+====================================================== -->
+
+<section id="section-sensors" class="dashboard-section">
+
+    <div class="page-card">
+
+        <h2>Sensors</h2>
+
+        <p>
+            Hotel safety sensor network status.
+        </p>
+
+        <div class="simple-grid">
+
+            <div class="simple-box">
+                <strong>Smoke Sensors</strong>
+                <span>All operational</span>
+            </div>
+
+            <div class="simple-box">
+                <strong>Motion Sensors</strong>
+                <span>All operational</span>
+            </div>
+
+            <div class="simple-box">
+                <strong>Network Sensors</strong>
+                <span>All operational</span>
+            </div>
+
+        </div>
+
+    </div>
+
+</section>
+
+
+<!-- ======================================================
+GUESTS
+====================================================== -->
+
+<section id="section-guests" class="dashboard-section">
+
+    <div class="page-card">
+
+        <h2>Guests</h2>
+
+        <p>
+            Current network-connected guest presence.
+        </p>
+
+        <div id="guestPageGrid" class="simple-grid"></div>
+
+    </div>
+
+</section>
+
+
+<!-- ======================================================
+REPORTS
+====================================================== -->
+
+<section id="section-reports" class="dashboard-section">
+
+    <div class="page-card">
+
+        <h2>Reports</h2>
+
+        <p>
+            Safety and occupancy reporting overview.
+        </p>
+
+        <div class="simple-grid">
+
+            <div class="simple-box">
+                <strong>Occupancy Report</strong>
+                <span>Live occupancy information available.</span>
+            </div>
+
+            <div class="simple-box">
+                <strong>Incident Report</strong>
+                <span>Incident activity available.</span>
+            </div>
+
+            <div class="simple-box">
+                <strong>Network Report</strong>
+                <span>Network health: 98.7%</span>
+            </div>
+
+        </div>
+
+    </div>
+
+</section>
+
+
+<!-- ======================================================
+SETTINGS
+====================================================== -->
+
+<section id="section-settings" class="dashboard-section">
+
+    <div class="page-card">
+
+        <h2>Settings</h2>
+
+        <p>
+            CrisisSync system configuration.
+        </p>
+
+        <div class="simple-grid">
+
+            <div class="simple-box">
+                <strong>Hotel</strong>
+                <span id="settingsHotelName">
+                    The Grand Delhi
+                </span>
+            </div>
+
+            <div class="simple-box">
+                <strong>Network</strong>
+                <span id="settingsWifi">
+                    GRAND_DELHI_GUEST
+                </span>
+            </div>
+
+            <div class="simple-box">
+                <strong>System</strong>
+                <span>Safety Operations</span>
+            </div>
+
+        </div>
+
+    </div>
+
+</section>
+
+</section>
+
+</main>
+
+</div>
+
+
+<div
+    class="toast-container"
+    id="toastContainer"
+></div>
+
+
+<script>
+
+/* ==========================================================
+   GLOBAL STATE
+========================================================== */
+
+let hotelData = {};
+let currentFloor = 4;
+
+
+/* ==========================================================
+   FLOOR ROOM SYSTEM
+   F1 = 101-108
+   F2 = 201-208
+   F3 = 301-308
+   F4 = 401-408
+========================================================== */
+
+const FLOOR_ROOMS = {
+
+    1: [101,102,103,104,105,106,107,108],
+
+    2: [201,202,203,204,205,206,207,208],
+
+    3: [301,302,303,304,305,306,307,308],
+
+    4: [401,402,403,404,405,406,407,408]
+
+};
+
+
+/* ==========================================================
+   CLOCK
+========================================================== */
+
+function updateClock(){
+
+    const now = new Date();
+
+    document.getElementById("clock").textContent =
+        now.toLocaleTimeString("en-IN",{
+            hour12:false
+        });
+}
+
+setInterval(updateClock,1000);
+updateClock();
+
+
+/* ==========================================================
+   SIDEBAR
+========================================================== */
+
+function toggleSidebar(){
+
+    document
+        .getElementById("sidebar")
+        .classList.toggle("open");
+}
+
+
+/* ==========================================================
+   SIDEBAR NAVIGATION — FIXED
+========================================================== */
+
+document
+    .querySelectorAll(".nav-item[data-section]")
+    .forEach(item => {
+
+        item.addEventListener("click",function(){
+
+            const section =
+                this.dataset.section;
+
+            /* active button */
+
+            document
+                .querySelectorAll(".nav-item")
+                .forEach(nav => {
+                    nav.classList.remove("active");
+                });
+
+            this.classList.add("active");
+
+
+            /* hide all sections */
+
+            document
+                .querySelectorAll(".dashboard-section")
+                .forEach(sec => {
+                    sec.classList.remove("active-section");
+                });
+
+
+            /* show selected section */
+
+            const target =
+                document.getElementById(
+                    "section-" + section
+                );
+
+            if(target){
+                target.classList.add(
+                    "active-section"
+                );
+            }
+
+
+            /* page specific actions */
+
+            if(section === "maps"){
+                openFloorMap(currentFloor);
+            }
+
+            if(section === "occupancy"){
+                renderOccupancyPage();
+            }
+
+            if(section === "guests"){
+                renderGuestsPage();
+            }
+
+            if(section === "incidents"){
+                renderIncidentPage();
+            }
+
+
+            /* mobile sidebar close */
+
+            document
+                .getElementById("sidebar")
+                .classList.remove("open");
+
+
+            window.scrollTo({
+                top:0,
+                behavior:"smooth"
+            });
+
+        });
+
+    });
+
+
+/* ==========================================================
+   NUMBER ANIMATION
+========================================================== */
+
+function animateNumber(element,target){
+
+    const start =
+        Number(
+            element.textContent.replace(/\D/g,"")
+        ) || 0;
+
+    const duration = 450;
+
+    const startTime = performance.now();
+
+    function step(time){
+
+        const progress =
+            Math.min(
+                (time-startTime)/duration,
+                1
+            );
+
+        const eased =
+            1-Math.pow(1-progress,3);
+
+        const value =
+            Math.round(
+                start+(target-start)*eased
+            );
+
+        element.textContent=value;
+
+        if(progress<1){
+            requestAnimationFrame(step);
+        }
+
+    }
+
+    requestAnimationFrame(step);
+}
+
+
+/* ==========================================================
+   FETCH HOTEL DATA
+========================================================== */
+
+async function refreshData(showToast=false){
+
+    try{
+
+        const response =
+            await fetch(
+                "/api/hotel-data?t="+Date.now()
+            );
+
+        if(!response.ok){
+            throw new Error("API request failed");
+        }
+
+        hotelData =
+            await response.json();
+
+        updateDashboard();
+
+        if(showToast){
+
+            showToastMessage(
+                "Dashboard refreshed",
+                "Live hotel data updated."
+            );
+        }
+
+    }catch(error){
+
+        console.error(error);
+
+        showToastMessage(
+            "Connection issue",
+            "Unable to fetch live hotel data."
+        );
+    }
+}
+
+
+/* ==========================================================
+   UPDATE DASHBOARD
+========================================================== */
+
+function updateDashboard(){
+
+    const hotel = hotelData || {};
+
+
+    document.getElementById("hotelName").textContent =
+        hotel.name || "The Grand Delhi";
+
+
+    document.getElementById("settingsHotelName").textContent =
+        hotel.name || "The Grand Delhi";
+
+
+    animateNumber(
+        document.getElementById("occupancy"),
+        Number(hotel.occupancy || 0)
+    );
+
+
+    animateNumber(
+        document.getElementById("connected"),
+        Number(hotel.connected_devices || 0)
+    );
+
+
+    animateNumber(
+        document.getElementById("wifiCount"),
+        Number(hotel.connected_devices || 0)
+    );
+
+
+    document.getElementById("wifiName").textContent =
+        hotel.wifi_network ||
+        "GRAND_DELHI_GUEST";
+
+
+    document.getElementById("settingsWifi").textContent =
+        hotel.wifi_network ||
+        "GRAND_DELHI_GUEST";
+
+
+    document.getElementById("liveDevices").textContent =
+        Number(hotel.connected_devices || 0);
+
+
+    const active =
+        Boolean(hotel.crisis_active);
+
+
+    document.getElementById("alerts").textContent =
+        active ? "1" : "0";
+
+
+    document.getElementById("systemStatus").textContent =
+        active
+            ? "INCIDENT ACTIVE"
+            : "SYSTEM ONLINE";
+
+
+    document.getElementById("liveSystemStatus").textContent =
+        active
+            ? "Incident active"
+            : "Online";
+
+
+    if(active){
+
+        document.body.classList.add("crisis-mode");
+
+        document.getElementById("alertFoot").className =
+            "stat-foot danger";
+
+        document.getElementById("alertFoot").textContent =
+            "● Immediate response active";
+
+        updateIncident(hotel);
+
+    }else{
+
+        document.body.classList.remove("crisis-mode");
+
+        document.getElementById("alertFoot").className =
+            "stat-foot good";
+
+        document.getElementById("alertFoot").textContent =
+            "No active incidents";
+
+        clearIncident();
+
+    }
+
+
+    updateFloors(hotel.floors || {});
+
+    updateEvents(hotel.event_log || []);
+
+    updateMap(hotel);
+
+    renderOccupancyPage();
+
+    renderGuestsPage();
+
+    renderIncidentPage();
+
+}
+
+
+/* ==========================================================
+   INCIDENT
+========================================================== */
+
+function updateIncident(hotel){
+
+    document.getElementById("incidentEmpty").style.display =
+        "none";
+
+    document
+        .getElementById("incidentActive")
+        .classList.add("show");
+
+
+    const type =
+        String(
+            hotel.crisis_type ||
+            "Emergency"
+        ).toUpperCase();
+
+
+    document.getElementById("incidentType").textContent =
+        type + " DETECTED";
+
+
+    const severity =
+        Number(hotel.severity || 0);
+
+
+    document.getElementById("severityNumber").textContent =
+        severity + " / 5";
+
+
+    document.getElementById("severityFill").style.width =
+        Math.min(severity*20,100) + "%";
+
+
+    document.getElementById("incidentFloor").textContent =
+        hotel.crisis_floor
+            ? "Floor "+hotel.crisis_floor
+            : "—";
+
+
+    const people =
+        Object.values(hotel.persons || {})
+            .filter(person => person.online)
+            .length;
+
+
+    document.getElementById("incidentPeople").textContent =
+        people;
+
+
+    document.getElementById("incidentBadge").textContent =
+        "CRITICAL";
+
+
+    document.getElementById("incidentBadge").style.background =
+        "#fff1f2";
+
+    document.getElementById("incidentBadge").style.color =
+        "#be123c";
+
+
+    document.getElementById("resetBtn").style.display =
+        "block";
+}
+
+
+function clearIncident(){
+
+    document.getElementById("incidentEmpty").style.display =
+        "block";
+
+    document
+        .getElementById("incidentActive")
+        .classList.remove("show");
+
+
+    document.getElementById("incidentBadge").textContent =
+        "CLEAR";
+
+    document.getElementById("incidentBadge").style.background =
+        "#f2fff5";
+
+    document.getElementById("incidentBadge").style.color =
+        "#15803d";
+
+
+    document.getElementById("resetBtn").style.display =
+        "none";
+
+    document.getElementById("severityFill").style.width =
+        "0%";
+}
+
+
+/* ==========================================================
+   FLOOR LIST
+========================================================== */
+
+function updateFloors(floors){
+
+    const container =
+        document.getElementById("floorList");
+
+
+    const entries =
+        Object.entries(floors)
+            .sort(
+                ([a],[b]) =>
+                    Number(b)-Number(a)
+            );
+
+
+    if(!entries.length){
+
+        container.innerHTML = `
+            <div style="color:#98a2b3;font-size:10px;">
+                No floor data available.
+            </div>
+        `;
+
+        return;
+    }
+
+
+    container.innerHTML =
+        entries.map(([id,floor]) => {
+
+            const occupancy =
+                Number(floor.occupancy || 0);
+
+            const capacity =
+                Number(floor.capacity || 1);
+
+            const percentage =
+                Math.min(
+                    Math.round(
+                        occupancy/capacity*100
+                    ),
+                    100
+                );
+
+
+            const danger =
+                floor.status === "danger";
+
+
+            return `
+                <div class="floor-row">
+
+                    <div class="floor-number">
+                        F${id}
+                    </div>
+
+                    <div class="floor-info">
+
+                        <strong>
+                            ${escapeHtml(
+                                floor.name ||
+                                "Floor "+id
+                            )}
+                        </strong>
+
+                        <span>
+                            ${occupancy} /
+                            ${capacity}
+                            occupants
+                        </span>
+
+                        <div class="occupancy-track">
+
+                            <div
+                                class="occupancy-fill"
+                                style="
+                                    width:${percentage}%;
+                                    background:${danger
+                                        ? "#ef4444"
+                                        : "#315bea"};
+                                "
+                            ></div>
+
+                        </div>
+
+                    </div>
+
+                    <div
+                        class="floor-percent"
+                        style="
+                            color:${danger
+                                ? "#dc2626"
+                                : "#344054"};
+                        "
+                    >
+                        ${percentage}%
+                    </div>
+
+                </div>
+            `;
+
+        }).join("");
+}
+
+
+/* ==========================================================
+   FLOOR ROOM NUMBERS
+========================================================== */
+
+function setRoomNumbers(floor){
+
+    const rooms =
+        FLOOR_ROOMS[floor] ||
+        FLOOR_ROOMS[4];
+
+
+    document
+        .querySelectorAll(".room-number")
+        .forEach((element,index)=>{
+
+            element.textContent =
+                rooms[index];
+
+        });
+
+
+    document.getElementById("mapFloor").textContent =
+        floor;
+}
+
+
+/* ==========================================================
+   CHANGE FLOOR — FIXED
+========================================================== */
+
+function changeFloor(floor,button){
+
+    currentFloor = Number(floor);
+
+
+    document
+        .querySelectorAll(".floor-btn")
+        .forEach(item => {
+
+            item.classList.remove("active");
+
+        });
+
+
+    button.classList.add("active");
+
+
+    setRoomNumbers(currentFloor);
+
+
+    updateMap(hotelData);
+
+
+    showToastMessage(
+        "Floor changed",
+        `Viewing Floor ${currentFloor} — Rooms ${currentFloor}01 to ${currentFloor}08.`
+    );
+}
+
+
+/* ==========================================================
+   MAP
+========================================================== */
+
+function updateMap(hotel){
+
+    setRoomNumbers(currentFloor);
+
+
+    const dangerZones =
+        hotel.danger_zones || [];
+
+
+    const mapDanger =
+        dangerZones.some(zone =>
+            String(zone).startsWith(
+                `F${currentFloor}`
+            )
+        );
+
+
+    document
+        .querySelectorAll(".room-dot")
+        .forEach(dot=>{
+
+            dot.classList.remove(
+                "danger",
+                "warning"
+            );
+
+
+            if(mapDanger){
+
+                if(Math.random()>.35){
+
+                    dot.classList.add(
+                        "danger"
+                    );
+
+                }else{
+
+                    dot.classList.add(
+                        "warning"
+                    );
+
+                }
+
+            }
+
+        });
+}
+
+
+/* ==========================================================
+   FLOOR MAP PAGE
+========================================================== */
+
+function openFloorMap(floor){
+
+    currentFloor = Number(floor);
+
+
+    const rooms =
+        FLOOR_ROOMS[currentFloor];
+
+
+    document
+        .querySelectorAll("#section-maps .floor-btn")
+        .forEach(button=>{
+            button.classList.remove("active");
+        });
+
+
+    const buttons =
+        document.querySelectorAll(
+            "#section-maps .floor-btn"
+        );
+
+
+    buttons.forEach(button=>{
+
+        if(
+            button.textContent.trim() ===
+            "F"+currentFloor
+        ){
+            button.classList.add("active");
+        }
+
+    });
+
+
+    const container =
+        document.getElementById(
+            "floorRoomGrid"
+        );
+
+
+    container.innerHTML =
+        rooms.map(room=>{
+
+            return `
+                <div class="room-card">
+
+                    <strong>
+                        Room ${room}
+                    </strong>
+
+                    <span>
+                        Floor ${currentFloor}
+                    </span>
+
+                    <span>
+                        ● Safety monitoring active
+                    </span>
+
+                </div>
+            `;
+
+        }).join("");
+
+
+    showToastMessage(
+        "Floor map",
+        `Floor ${currentFloor} rooms loaded.`
+    );
+}
+
+
+/* ==========================================================
+   EVENTS
+========================================================== */
+
+function updateEvents(events){
+
+    const container =
+        document.getElementById(
+            "eventList"
+        );
+
+
+    if(!events.length){
+
+        container.innerHTML = `
+            <div class="event-item">
+
+                <span class="event-dot"></span>
+
+                <div class="event-text">
+
+                    <strong>
+                        Monitoring active
+                    </strong>
+
+                    <span>
+                        No recent events.
+                    </span>
+
+                </div>
+
+            </div>
+        `;
+
+        return;
+    }
+
+
+    container.innerHTML =
+        events
+            .slice(0,8)
+            .map(event=>{
+
+                const dangerous =
+                    Number(event.severity || 0)>=75;
+
+                const warning =
+                    Number(event.severity || 0)>=45 &&
+                    !dangerous;
+
+
+                return `
+                    <div class="event-item">
+
+                        <span
+                            class="
+                                event-dot
+                                ${dangerous
+                                    ? "danger"
+                                    : warning
+                                        ? "warning"
+                                        : ""}
+                            "
+                        ></span>
+
+                        <div class="event-text">
+
+                            <strong>
+                                ${escapeHtml(
+                                    String(
+                                        event.type ||
+                                        "System event"
+                                    ).toUpperCase()
+                                )}
+                            </strong>
+
+                            <span>
+                                Floor ${escapeHtml(
+                                    event.floor || "—"
+                                )}
+                                ·
+                                ${escapeHtml(
+                                    event.zone ||
+                                    "Unknown zone"
+                                )}
+                            </span>
+
+                        </div>
+
+                        <span class="event-time">
+                            ${escapeHtml(
+                                event.timestamp || ""
+                            )}
+                        </span>
+
+                    </div>
+                `;
+
+            }).join("");
+}
+
+
+/* ==========================================================
+   OCCUPANCY PAGE
+========================================================== */
+
+function renderOccupancyPage(){
+
+    const container =
+        document.getElementById(
+            "occupancyPageList"
+        );
+
+
+    if(!container){
+        return;
+    }
+
+
+    const floors =
+        hotelData.floors || {};
+
+
+    const entries =
+        Object.entries(floors);
+
+
+    if(!entries.length){
+
+        container.innerHTML = `
+            <div class="simple-box">
+                <strong>No floor data</strong>
+                <span>Waiting for hotel data.</span>
+            </div>
+        `;
+
+        return;
+    }
+
+
+    container.innerHTML =
+        entries
+            .sort(([a],[b])=>Number(a)-Number(b))
+            .map(([id,floor])=>{
+
+                const occupancy =
+                    Number(floor.occupancy || 0);
+
+                const capacity =
+                    Number(floor.capacity || 1);
+
+                const percentage =
+                    Math.min(
+                        Math.round(
+                            occupancy/capacity*100
+                        ),
+                        100
+                    );
+
+
+                return `
+                    <div class="simple-box">
+
+                        <strong>
+                            Floor ${id}
+                        </strong>
+
+                        <span>
+                            ${floor.name || "Floor "+id}
+                        </span>
+
+                        <span style="margin-top:7px;">
+                            ${occupancy}/${capacity}
+                            occupants ·
+                            ${percentage}%
+                        </span>
+
+                    </div>
+                `;
+
+            }).join("");
+}
+
+
+/* ==========================================================
+   GUESTS PAGE
+========================================================== */
+
+function renderGuestsPage(){
+
+    const container =
+        document.getElementById(
+            "guestPageGrid"
+        );
+
+
+    if(!container){
+        return;
+    }
+
+
+    const persons =
+        hotelData.persons || {};
+
+
+    const entries =
+        Object.entries(persons);
+
+
+    if(!entries.length){
+
+        container.innerHTML = `
+            <div class="simple-box">
+                <strong>
+                    ${hotelData.connected_devices || 0}
+                    connected devices
+                </strong>
+
+                <span>
+                    Guest presence data available through network monitoring.
+                </span>
+            </div>
+        `;
+
+        return;
+    }
+
+
+    container.innerHTML =
+        entries
+            .slice(0,12)
+            .map(([id,person])=>{
+
+                return `
+                    <div class="simple-box">
+
+                        <strong>
+                            ${escapeHtml(id)}
+                        </strong>
+
+                        <span>
+                            Status:
+                            ${
+                                person.online
+                                    ? "Online"
+                                    : "Offline"
+                            }
+                        </span>
+
+                    </div>
+                `;
+
+            }).join("");
+}
+
+
+/* ==========================================================
+   INCIDENT PAGE
+========================================================== */
+
+function renderIncidentPage(){
+
+    const container =
+        document.getElementById(
+            "incidentPageContent"
+        );
+
+
+    if(!container){
+        return;
+    }
+
+
+    if(hotelData.crisis_active){
+
+        container.innerHTML = `
+
+            <div class="simple-grid">
+
+                <div class="simple-box">
+
+                    <strong>
+                        Active Incident
+                    </strong>
+
+                    <span>
+                        ${escapeHtml(
+                            String(
+                                hotelData.crisis_type ||
+                                "Emergency"
+                            ).toUpperCase()
+                        )}
+                    </span>
+
+                </div>
+
+                <div class="simple-box">
+
+                    <strong>
+                        Floor
+                    </strong>
+
+                    <span>
+                        Floor ${
+                            hotelData.crisis_floor ||
+                            "—"
+                        }
+                    </span>
+
+                </div>
+
+                <div class="simple-box">
+
+                    <strong>
+                        Severity
+                    </strong>
+
+                    <span>
+                        ${
+                            hotelData.severity ||
+                            0
+                        } / 5
+                    </span>
+
+                </div>
+
+            </div>
+        `;
+
+    }else{
+
+        container.innerHTML = `
+
+            <div class="simple-box">
+
+                <strong>
+                    No active incidents
+                </strong>
+
+                <span>
+                    CrisisSync is monitoring the hotel.
+                </span>
+
+            </div>
+
+        `;
+
+    }
+}
+
+
+/* ==========================================================
+   SIMULATION
+========================================================== */
+
+async function triggerDemoIncident(){
+
+    document.getElementById(
+        "incidentTypeSelect"
+    ).value = "fire";
+
+
+    document.getElementById(
+        "incidentFloorSelect"
+    ).value = String(currentFloor);
+
+
+    await triggerIncidentFromPanel();
+}
+
+
+async function triggerIncidentFromPanel(){
+
+    const type =
+        document.getElementById(
+            "incidentTypeSelect"
+        ).value;
+
+
+    const floor =
+        Number(
+            document.getElementById(
+                "incidentFloorSelect"
+            ).value
+        );
+
+
+    try{
+
+        const response =
+            await fetch(
+                "/api/trigger-crisis",
+                {
+                    method:"POST",
+
+                    headers:{
+                        "Content-Type":
+                            "application/json"
+                    },
+
+                    body:JSON.stringify({
+
+                        type,
+
+                        floor,
+
+                        zone:
+                            `F${floor}-EAST`,
+
+                        danger_zones:[
+                            `F${floor}-EAST`
+                        ]
+
+                    })
+                }
+            );
+
+
+        if(!response.ok){
+            throw new Error(
+                "Incident failed"
+            );
+        }
+
+
+        const result =
+            await response.json();
+
+
+        showToastMessage(
+            "Emergency simulation activated",
+            result.incident_id ||
+            "Incident response started."
+        );
+
+
+        await refreshData();
+
+    }catch(error){
+
+        console.error(error);
+
+        showToastMessage(
+            "Simulation failed",
+            "Could not activate the incident."
+        );
+    }
+}
+
+
+/* ==========================================================
+   RESET INCIDENT
+========================================================== */
+
+async function resetIncident(){
+
+    try{
+
+        const response =
+            await fetch(
+                "/api/reset",
+                {
+                    method:"POST"
+                }
+            );
+
+
+        if(!response.ok){
+            throw new Error("Reset failed");
+        }
+
+
+        showToastMessage(
+            "Incident resolved",
+            "Hotel safety system returned to normal mode."
+        );
+
+
+        await refreshData();
+
+    }catch(error){
+
+        console.error(error);
+
+        showToastMessage(
+            "Reset failed",
+            "Could not resolve the incident."
+        );
+    }
+}
+
+
+/* ==========================================================
+   TOAST
+========================================================== */
+
+function showToastMessage(title,message){
+
+    const container =
+        document.getElementById(
+            "toastContainer"
+        );
+
+
+    const toast =
+        document.createElement("div");
+
+
+    toast.className = "toast";
+
+
+    toast.innerHTML = `
+
+        <strong>
+            ${escapeHtml(title)}
+        </strong>
+
+        <span>
+            ${escapeHtml(message)}
+        </span>
+
+    `;
+
+
+    container.appendChild(toast);
+
+
+    setTimeout(()=>{
+        toast.remove();
+    },3900);
+}
+
+
+/* ==========================================================
+   SECURITY
+========================================================== */
+
+function escapeHtml(value){
+
+    return String(value)
+
+        .replace(/&/g,"&amp;")
+
+        .replace(/</g,"&lt;")
+
+        .replace(/>/g,"&gt;")
+
+        .replace(/"/g,"&quot;")
+
+        .replace(/'/g,"&#039;");
+}
+
+
+/* ==========================================================
+   INITIAL LOAD
+========================================================== */
+
+setRoomNumbers(4);
+
+openFloorMap(4);
+
+refreshData();
+
+
+/* ==========================================================
+   LIVE UPDATE EVERY 3 SECONDS
+========================================================== */
+
+setInterval(
+    ()=>{
+        refreshData(false);
+    },
+    3000
+);
+
+</script>
+
+</body>
+</html>

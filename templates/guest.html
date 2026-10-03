@@ -1,376 +1,1308 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
+
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CrisisSync - Guest</title>
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
+    <title>CrisisSync — Guest Safety</title>
+
     <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        * {
+            box-sizing: border-box;
+        }
 
         body {
-            background: #0d0d0d;
-            font-family: Arial, sans-serif;
+            margin: 0;
+            font-family:
+                Arial,
+                Helvetica,
+                sans-serif;
+            background: #f5f7fa;
+            color: #1f2937;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 24px;
+        }
+
+        .header {
+            background: #111827;
             color: white;
-            min-height: 100vh;
-        }
-
-        .top {
-            background: #111;
-            padding: 14px 20px;
-            border-bottom: 1px solid #222;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
-        .brand {
-            font-size: 18px;
-            font-weight: bold;
-            color: #ff3333;
-        }
-
-        .brand span { color: white; }
-
-        .tag-info {
-            font-size: 12px;
-            color: #555;
-            background: #1a1a1a;
-            padding: 5px 12px;
-            border-radius: 15px;
-        }
-
-        /* safe state */
-        .safe-screen {
-            text-align: center;
-            padding: 80px 30px;
-        }
-
-        .safe-icon {
-            font-size: 60px;
+            border-radius: 14px;
+            padding: 22px;
             margin-bottom: 20px;
         }
 
-        .safe-screen h2 {
-            font-size: 22px;
-            color: #33cc33;
-            margin-bottom: 10px;
+        .header h1 {
+            margin: 0 0 6px;
+            font-size: 26px;
         }
 
-        .safe-screen p {
-            color: #666;
-            font-size: 14px;
-            line-height: 1.6;
+        .header p {
+            margin: 0;
+            opacity: 0.8;
         }
 
-        /* crisis state - hidden by default */
-        .crisis-screen {
-            display: none;
-            padding: 20px;
-        }
-
-        .alert-banner {
-            background: #cc0000;
-            border-radius: 10px;
-            padding: 16px 20px;
-            text-align: center;
+        .status-card {
+            background: white;
+            border-radius: 14px;
+            padding: 22px;
             margin-bottom: 18px;
+            box-shadow:
+                0 2px 10px rgba(0, 0, 0, 0.06);
         }
 
-        .alert-banner h2 {
-            font-size: 20px;
+        .status {
+            display: inline-block;
+            padding: 8px 14px;
+            border-radius: 999px;
             font-weight: bold;
-            letter-spacing: 0.5px;
-        }
-
-        .alert-banner p {
-            font-size: 12px;
-            margin-top: 4px;
-            opacity: 0.85;
-        }
-
-        /* route card */
-        .route-card {
-            background: #151515;
-            border: 1px solid #252525;
-            border-radius: 10px;
-            padding: 18px;
-            margin-bottom: 14px;
-        }
-
-        .route-card h3 {
-            font-size: 11px;
-            color: #666;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            margin-bottom: 14px;
-        }
-
-        .step {
-            display: flex;
-            align-items: flex-start;
-            gap: 12px;
-            margin-bottom: 12px;
-        }
-
-        .step-num {
-            background: #ff3333;
-            color: white;
-            width: 24px;
-            height: 24px;
-            border-radius: 50%;
-            font-size: 12px;
-            font-weight: bold;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            flex-shrink: 0;
-            margin-top: 1px;
-        }
-
-        .step p {
             font-size: 14px;
-            line-height: 1.5;
-            color: #ddd;
+
+            background: #dcfce7;
+            color: #166534;
         }
 
-        /* instruction box */
-        .instruction-box {
-            background: #0a1a0a;
-            border: 1px solid #1a3a1a;
+        /*
+         * RED ONLY WHEN A REAL CRISIS IS ACTIVE
+         */
+        .status.crisis {
+            background: #fee2e2;
+            color: #991b1b;
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns:
+                repeat(
+                    auto-fit,
+                    minmax(220px, 1fr)
+                );
+            gap: 14px;
+        }
+
+        .info {
+            background: #f9fafb;
             border-radius: 10px;
-            padding: 16px;
-            margin-bottom: 14px;
+            padding: 15px;
         }
 
-        .instruction-box h3 {
-            font-size: 11px;
-            color: #33cc33;
-            text-transform: uppercase;
-            letter-spacing: 1px;
+        .label {
+            display: block;
+            color: #6b7280;
+            font-size: 13px;
+            margin-bottom: 5px;
+        }
+
+        .value {
+            font-weight: 600;
+        }
+
+        .route {
+            margin-top: 18px;
+        }
+
+        .route ol {
+            margin: 10px 0 0;
+            padding-left: 22px;
+        }
+
+        .route li {
             margin-bottom: 10px;
         }
 
-        .instruction-box p {
-            font-size: 14px;
-            color: #aaddaa;
-            line-height: 1.7;
-        }
-
-        /* voice button */
-        #voiceBtn {
-            width: 100%;
+        .message {
+            background: #eff6ff;
+            border-left: 4px solid #2563eb;
             padding: 14px;
-            background: #1a3a1a;
-            border: 1px solid #2a5a2a;
             border-radius: 8px;
-            color: #33cc33;
-            font-size: 14px;
-            cursor: pointer;
-            margin-bottom: 14px;
-        }
-
-        #voiceBtn:hover { background: #1f4a1f; }
-
-        /* exit info */
-        .exit-info {
-            background: #151515;
-            border: 1px solid #252525;
-            border-radius: 10px;
-            padding: 16px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
-        .exit-info h4 { font-size: 13px; color: #888; }
-        .exit-info p { font-size: 16px; font-weight: bold; margin-top: 3px; }
-
-        .exit-time {
-            text-align: right;
-        }
-
-        .exit-time h4 { font-size: 13px; color: #888; }
-        .exit-time p { 
-            font-size: 22px; 
-            font-weight: bold; 
-            color: #ffaa00;
-        }
-
-        /* loading */
-        .loading {
-            text-align: center;
-            padding: 60px 20px;
-            display: none;
-        }
-
-        .loading p {
-            color: #666;
-            font-size: 14px;
             margin-top: 15px;
         }
 
-        .spinner {
-            width: 40px;
-            height: 40px;
-            border: 3px solid #222;
-            border-top: 3px solid #ff3333;
-            border-radius: 50%;
-            animation: spin 0.8s linear infinite;
-            margin: 0 auto;
+        .warning {
+            background: #fff7ed;
+            border-left: 4px solid #ea580c;
+            padding: 14px;
+            border-radius: 8px;
+            margin-top: 15px;
         }
 
-        @keyframes spin {
-            to { transform: rotate(360deg); }
+        .error {
+            background: #fee2e2;
+            border-left: 4px solid #dc2626;
+            padding: 14px;
+            border-radius: 8px;
+            color: #991b1b;
         }
+
+        .loading {
+            color: #6b7280;
+        }
+
+        button {
+            border: 0;
+            border-radius: 9px;
+            padding: 11px 16px;
+            background: #111827;
+            color: white;
+            cursor: pointer;
+            font-weight: 600;
+        }
+
+        button:hover {
+            opacity: 0.9;
+        }
+
+        .footer {
+            text-align: center;
+            color: #6b7280;
+            font-size: 13px;
+            margin-top: 25px;
+        }
+
     </style>
+
 </head>
+
+
 <body>
 
-<div class="top">
-    <div class="brand">Crisis<span>Sync</span> AI</div>
-    <div class="tag-info" id="tagLabel">TAG-001</div>
-</div>
+<div class="container">
 
-<!-- Safe State -->
-<div class="safe-screen" id="safeScreen">
-    <div class="safe-icon">🟢</div>
-    <h2>You are Safe</h2>
-    <p>No emergency active.<br>
-    This page will automatically update<br>
-    if an emergency is declared.</p>
-    <br>
-    <p style="color:#333; font-size:12px;">
-        Auto-checking every 5 seconds...
-    </p>
-</div>
 
-<!-- Loading -->
-<div class="loading" id="loadingScreen">
-    <div class="spinner"></div>
-    <p>Gemini AI calculating your safe route...</p>
-</div>
+    <!-- =====================================================
+         HEADER
+         ===================================================== -->
 
-<!-- Crisis State -->
-<div class="crisis-screen" id="crisisScreen">
+    <div class="header">
 
-    <div class="alert-banner">
-        <h2>⚠️ Emergency Declared</h2>
-        <p>Follow the route below immediately</p>
+        <h1>
+            CrisisSync Safety
+        </h1>
+
+        <p>
+            The Grand Delhi — Guest Emergency Dashboard
+        </p>
+
     </div>
 
-    <div class="route-card">
-        <h3>Your Safe Route</h3>
-        <div id="routeSteps"></div>
-    </div>
 
-    <div class="instruction-box">
-        <h3>Instructions</h3>
-        <p id="instructionText"></p>
-    </div>
+    <!-- =====================================================
+         STATUS
+         ===================================================== -->
 
-    <button id="voiceBtn" onclick="speakInstructions()">
-        🔊 Play Voice Instructions
-    </button>
+    <div class="status-card">
 
-    <div class="exit-info">
-        <div>
-            <h4>Exit Point</h4>
-            <p id="exitPoint">—</p>
+        <div
+            id="status"
+            class="status"
+        >
+            Checking safety status...
         </div>
-        <div class="exit-time">
-            <h4>Est. Time</h4>
-            <p id="exitTime">— min</p>
+
+
+        <div
+            id="loading"
+            class="loading"
+            style="margin-top: 15px;"
+        >
+            Loading your safety information...
         </div>
+
+
+        <div
+            id="error"
+            class="error"
+            style="
+                display:none;
+                margin-top:15px;
+            "
+        ></div>
+
+    </div>
+
+
+    <!-- =====================================================
+         GUEST INFORMATION
+         ===================================================== -->
+
+    <div
+        id="guest-card"
+        class="status-card"
+        style="display:none;"
+    >
+
+        <h2>
+            Guest Information
+        </h2>
+
+
+        <div class="grid">
+
+
+            <div class="info">
+
+                <span class="label">
+                    Name
+                </span>
+
+                <span
+                    id="guest-name"
+                    class="value"
+                >
+                    —
+                </span>
+
+            </div>
+
+
+            <div class="info">
+
+                <span class="label">
+                    Room
+                </span>
+
+                <span
+                    id="guest-room"
+                    class="value"
+                >
+                    —
+                </span>
+
+            </div>
+
+
+            <div class="info">
+
+                <span class="label">
+                    Floor
+                </span>
+
+                <span
+                    id="guest-floor"
+                    class="value"
+                >
+                    —
+                </span>
+
+            </div>
+
+
+            <div class="info">
+
+                <span class="label">
+                    Zone
+                </span>
+
+                <span
+                    id="guest-zone"
+                    class="value"
+                >
+                    —
+                </span>
+
+            </div>
+
+
+            <div class="info">
+
+                <span class="label">
+                    Special Needs
+                </span>
+
+                <span
+                    id="guest-special-needs"
+                    class="value"
+                >
+                    —
+                </span>
+
+            </div>
+
+
+            <div class="info">
+
+                <span class="label">
+                    Language
+                </span>
+
+                <span
+                    id="guest-language"
+                    class="value"
+                >
+                    —
+                </span>
+
+            </div>
+
+
+        </div>
+
+    </div>
+
+
+    <!-- =====================================================
+         SAFETY ROUTE
+         ===================================================== -->
+
+    <div
+        id="route-card"
+        class="status-card"
+        style="display:none;"
+    >
+
+        <h2>
+            Safety Instructions
+        </h2>
+
+
+        <div
+            id="instruction-message"
+            class="message"
+        ></div>
+
+
+        <div class="route">
+
+            <h3>
+                Primary Route
+            </h3>
+
+            <ol id="primary-route"></ol>
+
+        </div>
+
+
+        <div class="route">
+
+            <h3>
+                Backup Route
+            </h3>
+
+            <ol id="backup-route"></ol>
+
+        </div>
+
+
+        <div
+            class="grid"
+            style="margin-top:18px;"
+        >
+
+
+            <div class="info">
+
+                <span class="label">
+                    Exit
+                </span>
+
+                <span
+                    id="exit-used"
+                    class="value"
+                >
+                    —
+                </span>
+
+            </div>
+
+
+            <div class="info">
+
+                <span class="label">
+                    Estimated Time
+                </span>
+
+                <span
+                    id="estimated-time"
+                    class="value"
+                >
+                    —
+                </span>
+
+            </div>
+
+
+            <div class="info">
+
+                <span class="label">
+                    Assistance
+                </span>
+
+                <span
+                    id="assistance"
+                    class="value"
+                >
+                    —
+                </span>
+
+            </div>
+
+
+        </div>
+
+    </div>
+
+
+    <!-- =====================================================
+         CRISIS INFORMATION
+         Hidden when no crisis is active.
+         ===================================================== -->
+
+    <div
+        id="crisis-card"
+        class="status-card"
+        style="display:none;"
+    >
+
+        <h2>
+            Emergency Information
+        </h2>
+
+        <div
+            id="crisis-message"
+            class="warning"
+        ></div>
+
+    </div>
+
+
+    <!-- =====================================================
+         REFRESH
+         ===================================================== -->
+
+    <div class="status-card">
+
+        <button
+            type="button"
+            onclick="loadGuestData()"
+        >
+            Refresh Safety Information
+        </button>
+
+    </div>
+
+
+    <div class="footer">
+
+        CrisisSync — Hotel Emergency Safety Network
+
     </div>
 
 </div>
+
 
 <script>
-    // tag id from URL
-    let tagId = window.location.pathname.split('/').pop()
-    document.getElementById('tagLabel').textContent = tagId
 
-    let instructionForVoice = ''
-    let crisisActive = false
+    /*
+     * Flask passes the actual guest/tag ID here.
+     *
+     * Example:
+     * GUEST-001
+     */
 
-    // check every 5 seconds if crisis happened
-    async function checkCrisis() {
+    const TAG_ID = {{ tag_id|tojson }};
+
+
+    /*
+     * -------------------------------------------------------
+     * Safe text helper
+     * -------------------------------------------------------
+     */
+
+    function setText(
+        elementId,
+        value
+    ) {
+
+        const element =
+            document.getElementById(
+                elementId
+            );
+
+
+        if (!element) {
+            return;
+        }
+
+
+        if (
+            value === null ||
+            value === undefined ||
+            value === ""
+        ) {
+
+            element.textContent = "—";
+
+            return;
+        }
+
+
+        element.textContent =
+            String(value);
+    }
+
+
+    /*
+     * -------------------------------------------------------
+     * Clear route list
+     * -------------------------------------------------------
+     */
+
+    function clearList(
+        elementId
+    ) {
+
+        const element =
+            document.getElementById(
+                elementId
+            );
+
+
+        if (!element) {
+            return;
+        }
+
+
+        element.innerHTML = "";
+    }
+
+
+    /*
+     * -------------------------------------------------------
+     * Add route item
+     * -------------------------------------------------------
+     */
+
+    function addListItem(
+        elementId,
+        text
+    ) {
+
+        const element =
+            document.getElementById(
+                elementId
+            );
+
+
+        if (!element) {
+            return;
+        }
+
+
+        const li =
+            document.createElement(
+                "li"
+            );
+
+
+        li.textContent =
+            String(text);
+
+
+        element.appendChild(
+            li
+        );
+    }
+
+
+    /*
+     * -------------------------------------------------------
+     * Error display
+     * -------------------------------------------------------
+     */
+
+    function showError(
+        message
+    ) {
+
+        const error =
+            document.getElementById(
+                "error"
+            );
+
+
+        if (!error) {
+            return;
+        }
+
+
+        error.textContent =
+            message;
+
+
+        error.style.display =
+            "block";
+    }
+
+
+    function hideError() {
+
+        const error =
+            document.getElementById(
+                "error"
+            );
+
+
+        if (!error) {
+            return;
+        }
+
+
+        error.textContent =
+            "";
+
+
+        error.style.display =
+            "none";
+    }
+
+
+    /*
+     * -------------------------------------------------------
+     * IMPORTANT:
+     *
+     * Convert every possible backend representation
+     * into a real boolean.
+     *
+     * false
+     * "false"
+     * 0
+     * "0"
+     * null
+     * undefined
+     *
+     * are NOT treated as an active crisis.
+     * -------------------------------------------------------
+     */
+
+    function isCrisisActive(
+        value
+    ) {
+
+        if (
+            value === true ||
+            value === 1
+        ) {
+
+            return true;
+        }
+
+
+        if (
+            typeof value === "string"
+        ) {
+
+            const normalized =
+                value
+                    .trim()
+                    .toLowerCase();
+
+
+            return (
+                normalized === "true" ||
+                normalized === "1" ||
+                normalized === "yes" ||
+                normalized === "active"
+            );
+        }
+
+
+        return false;
+    }
+
+
+    /*
+     * -------------------------------------------------------
+     * Main Guest API call
+     * -------------------------------------------------------
+     */
+
+    async function loadGuestData() {
+
+        hideError();
+
+
+        const loading =
+            document.getElementById(
+                "loading"
+            );
+
+
+        if (loading) {
+
+            loading.style.display =
+                "block";
+
+        }
+
+
         try {
-            let res = await fetch('/api/hotel-data')
-            let data = await res.json()
 
-            if (data.crisis_active && !crisisActive) {
-                crisisActive = true
-                showLoading()
-                await loadRoute()
-            } else if (!data.crisis_active && crisisActive) {
-                crisisActive = false
-                showSafe()
+            /*
+             * Make sure we have a guest ID.
+             */
+
+            if (
+                !TAG_ID ||
+                TAG_ID === "None"
+            ) {
+
+                throw new Error(
+                    "Guest ID is missing."
+                );
+
             }
-        } catch(e) {
-            console.log('check failed', e)
+
+
+            /*
+             * Existing backend endpoint.
+             *
+             * We are NOT changing the backend API.
+             */
+
+            const url =
+                "/api/get-route/" +
+                encodeURIComponent(
+                    TAG_ID
+                );
+
+
+            const response =
+                await fetch(
+                    url,
+                    {
+                        method: "GET",
+                        cache: "no-store",
+                        headers: {
+                            "Accept":
+                                "application/json"
+                        }
+                    }
+                );
+
+
+            /*
+             * Try to decode JSON safely.
+             */
+
+            let data = null;
+
+
+            try {
+
+                data =
+                    await response.json();
+
+            } catch (jsonError) {
+
+                throw new Error(
+                    "Guest API returned an invalid response."
+                );
+
+            }
+
+
+            /*
+             * HTTP error.
+             */
+
+            if (!response.ok) {
+
+                throw new Error(
+                    data &&
+                    data.error
+                        ? data.error
+                        : (
+                            "Guest API error: HTTP " +
+                            response.status
+                        )
+                );
+
+            }
+
+
+            /*
+             * ------------------------------------------------
+             * PERSON
+             * ------------------------------------------------
+             */
+
+            const person =
+                (
+                    data &&
+                    typeof data.person === "object" &&
+                    data.person !== null
+                )
+                    ? data.person
+                    : {};
+
+
+            /*
+             * ------------------------------------------------
+             * ROUTE
+             * ------------------------------------------------
+             */
+
+            const route =
+                (
+                    data &&
+                    typeof data.route === "object" &&
+                    data.route !== null
+                )
+                    ? data.route
+                    : {};
+
+
+            /*
+             * ------------------------------------------------
+             * Guest information
+             * ------------------------------------------------
+             */
+
+            setText(
+                "guest-name",
+                person.name
+            );
+
+
+            setText(
+                "guest-room",
+                person.room
+            );
+
+
+            setText(
+                "guest-floor",
+                person.floor
+            );
+
+
+            setText(
+                "guest-zone",
+                person.zone
+            );
+
+
+            setText(
+                "guest-special-needs",
+                person.special_needs
+            );
+
+
+            setText(
+                "guest-language",
+                person.language
+            );
+
+
+            const guestCard =
+                document.getElementById(
+                    "guest-card"
+                );
+
+
+            if (guestCard) {
+
+                guestCard.style.display =
+                    "block";
+
+            }
+
+
+            /*
+             * ------------------------------------------------
+             * Instructions
+             * ------------------------------------------------
+             */
+
+            setText(
+                "instruction-message",
+                data.instructions ||
+                "Please follow the hotel's emergency instructions."
+            );
+
+
+            /*
+             * ------------------------------------------------
+             * Primary route
+             * ------------------------------------------------
+             */
+
+            clearList(
+                "primary-route"
+            );
+
+
+            const primaryRoute =
+                Array.isArray(
+                    route.primary_route
+                )
+                    ? route.primary_route
+                    : [];
+
+
+            if (
+                primaryRoute.length === 0
+            ) {
+
+                addListItem(
+                    "primary-route",
+                    "No primary route available."
+                );
+
+            } else {
+
+                primaryRoute.forEach(
+                    function(step) {
+
+                        addListItem(
+                            "primary-route",
+                            step
+                        );
+
+                    }
+                );
+
+            }
+
+
+            /*
+             * ------------------------------------------------
+             * Backup route
+             * ------------------------------------------------
+             */
+
+            clearList(
+                "backup-route"
+            );
+
+
+            const backupRoute =
+                Array.isArray(
+                    route.backup_route
+                )
+                    ? route.backup_route
+                    : [];
+
+
+            if (
+                backupRoute.length === 0
+            ) {
+
+                addListItem(
+                    "backup-route",
+                    "No backup route available."
+                );
+
+            } else {
+
+                backupRoute.forEach(
+                    function(step) {
+
+                        addListItem(
+                            "backup-route",
+                            step
+                        );
+
+                    }
+                );
+
+            }
+
+
+            /*
+             * ------------------------------------------------
+             * Route details
+             * ------------------------------------------------
+             */
+
+            setText(
+                "exit-used",
+                route.exit_used
+            );
+
+
+            if (
+                route.estimated_minutes !==
+                undefined &&
+                route.estimated_minutes !==
+                null &&
+                route.estimated_minutes !== ""
+            ) {
+
+                setText(
+                    "estimated-time",
+                    route.estimated_minutes +
+                    " minutes"
+                );
+
+            } else {
+
+                setText(
+                    "estimated-time",
+                    "—"
+                );
+
+            }
+
+
+            if (
+                route.needs_assistance === true ||
+                route.needs_assistance === 1 ||
+                route.needs_assistance === "true"
+            ) {
+
+                setText(
+                    "assistance",
+                    "Responder assistance required"
+                );
+
+            } else {
+
+                setText(
+                    "assistance",
+                    "No special assistance required"
+                );
+
+            }
+
+
+            const routeCard =
+                document.getElementById(
+                    "route-card"
+                );
+
+
+            if (routeCard) {
+
+                routeCard.style.display =
+                    "block";
+
+            }
+
+
+            /*
+             * ------------------------------------------------
+             * CRISIS STATUS
+             * ------------------------------------------------
+             *
+             * This is the important fix.
+             *
+             * Backend currently returns:
+             *
+             * crisis_active: false
+             *
+             * Therefore status MUST be green.
+             * ------------------------------------------------
+             */
+
+            const crisisActive =
+                isCrisisActive(
+                    data.crisis_active
+                );
+
+
+            const status =
+                document.getElementById(
+                    "status"
+                );
+
+
+            const crisisCard =
+                document.getElementById(
+                    "crisis-card"
+                );
+
+
+            const crisisMessage =
+                document.getElementById(
+                    "crisis-message"
+                );
+
+
+            if (crisisActive) {
+
+                /*
+                 * REAL ACTIVE CRISIS
+                 */
+
+                if (status) {
+
+                    status.textContent =
+                        "EMERGENCY ACTIVE";
+
+                    status.classList.add(
+                        "crisis"
+                    );
+
+                }
+
+
+                if (crisisCard) {
+
+                    crisisCard.style.display =
+                        "block";
+
+                }
+
+
+                const crisisType =
+                    data.crisis_type ||
+                    "Emergency";
+
+
+                if (crisisMessage) {
+
+                    crisisMessage.textContent =
+                        (
+                            String(crisisType)
+                                .toUpperCase()
+                        ) +
+                        " emergency is active. " +
+                        "Please remain calm and follow " +
+                        "the safety route above. " +
+                        "Do not use elevators.";
+
+                }
+
+
+            } else {
+
+                /*
+                 * NORMAL / OPERATIONAL
+                 */
+
+                if (status) {
+
+                    status.textContent =
+                        "HOTEL OPERATIONAL";
+
+                    /*
+                     * Remove any old red class.
+                     */
+
+                    status.classList.remove(
+                        "crisis"
+                    );
+
+                }
+
+
+                if (crisisCard) {
+
+                    crisisCard.style.display =
+                        "none";
+
+                }
+
+            }
+
+
+            /*
+             * Console information for debugging.
+             *
+             * This does not affect the UI.
+             */
+
+            console.log(
+                "CrisisSync Guest:",
+                {
+                    tag_id: TAG_ID,
+                    person: person,
+                    crisis_active:
+                        data.crisis_active,
+                    normalized_crisis:
+                        crisisActive,
+                    route: route
+                }
+            );
+
+
+        } catch (error) {
+
+            console.error(
+                "CrisisSync Guest Error:",
+                error
+            );
+
+
+            showError(
+                error.message ||
+                "Unable to load guest information."
+            );
+
+
+            /*
+             * Do NOT falsely show emergency status
+             * merely because the API failed.
+             */
+
+            const status =
+                document.getElementById(
+                    "status"
+                );
+
+
+            if (status) {
+
+                status.textContent =
+                    "STATUS UNAVAILABLE";
+
+                status.classList.remove(
+                    "crisis"
+                );
+
+            }
+
+        } finally {
+
+            if (loading) {
+
+                loading.style.display =
+                    "none";
+
+            }
+
         }
+
     }
 
-    function showLoading() {
-        document.getElementById('safeScreen').style.display = 'none'
-        document.getElementById('crisisScreen').style.display = 'none'
-        document.getElementById('loadingScreen').style.display = 'block'
-    }
 
-    function showSafe() {
-        document.getElementById('safeScreen').style.display = 'block'
-        document.getElementById('crisisScreen').style.display = 'none'
-        document.getElementById('loadingScreen').style.display = 'none'
-    }
+    /*
+     * -------------------------------------------------------
+     * Initial load
+     * -------------------------------------------------------
+     */
 
-    async function loadRoute() {
-        try {
-            let res = await fetch('/api/get-route/' + tagId)
-            let data = await res.json()
+    loadGuestData();
 
-            // fill route steps
-            let stepsHtml = ''
-            data.route.primary_route.forEach((step, i) => {
-                stepsHtml += `
-                    <div class="step">
-                        <div class="step-num">${i+1}</div>
-                        <p>${step}</p>
-                    </div>
-                `
-            })
-            document.getElementById('routeSteps').innerHTML = stepsHtml
 
-            // fill instructions
-            document.getElementById('instructionText').textContent = data.instructions
-            instructionForVoice = data.instructions
+    /*
+     * -------------------------------------------------------
+     * Refresh every 10 seconds
+     * -------------------------------------------------------
+     *
+     * This keeps the Guest page synchronized with the
+     * existing backend crisis state.
+     * -------------------------------------------------------
+     */
 
-            // fill exit info
-            document.getElementById('exitPoint').textContent = data.route.exit_used
-            document.getElementById('exitTime').textContent = data.route.estimated_minutes
+    setInterval(
+        loadGuestData,
+        10000
+    );
 
-            // show crisis screen
-            document.getElementById('loadingScreen').style.display = 'none'
-            document.getElementById('crisisScreen').style.display = 'block'
-
-        } catch(e) {
-            console.log('route load failed', e)
-        }
-    }
-
-    // voice instructions using browser TTS
-    function speakInstructions() {
-        if (!instructionForVoice) return
-        let utterance = new SpeechSynthesisUtterance(instructionForVoice)
-        utterance.rate = 0.9
-        utterance.pitch = 1
-        window.speechSynthesis.speak(utterance)
-    }
-
-    // start checking
-    checkCrisis()
-    setInterval(checkCrisis, 5000)
 </script>
 
 </body>
+
 </html>
