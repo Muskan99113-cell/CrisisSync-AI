@@ -33,6 +33,13 @@ def set_hotel_value(path, value):
     db.reference(path).set(value)
 
 
+def safe_int(value, default):
+    try:
+        return int(value)
+    except (TypeError, ValueError):
+        return default
+
+
 def generate_device_id():
     return "DEV-" + uuid.uuid4().hex[:8].upper()
 
@@ -517,12 +524,7 @@ def connect_device():
         "Guest"
     )
 
-    floor = int(
-        data.get(
-            "floor",
-            random.randint(1, 4)
-        )
-    )
+    floor = safe_int(data.get("floor"), random.randint(1, 4))
 
     zone_map = {
         1: "F1-LOBBY",
@@ -678,24 +680,14 @@ def simulate_event():
         "temperature"
     )
 
-    floor = int(
-        data.get(
-            "floor",
-            random.randint(1, 4)
-        )
-    )
+    floor = safe_int(data.get("floor"), random.randint(1, 4))
 
     zone = data.get(
         "zone",
         f"F{floor}-EAST"
     )
 
-    severity = int(
-        data.get(
-            "severity",
-            random.randint(20, 90)
-        )
-    )
+    severity = safe_int(data.get("severity"), random.randint(20, 90))
 
     event = {
 
@@ -955,12 +947,7 @@ def trigger_crisis():
         "fire"
     )
 
-    floor = int(
-        data.get(
-            "floor",
-            3
-        )
-    )
+    floor = safe_int(data.get("floor"), 3)
 
     zone = data.get(
         "zone",

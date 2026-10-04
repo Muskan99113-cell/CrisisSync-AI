@@ -1090,6 +1090,33 @@ body.crisis-mode .live-pill{
     color:#be123c;
 }
 
+/* ================= SIDEBAR OVERLAY ================= */
+.sidebar-overlay{
+    position:fixed;
+    inset:0;
+    background:rgba(15,23,42,.28);
+    backdrop-filter:blur(2px);
+    opacity:0;
+    visibility:hidden;
+    pointer-events:none;
+    transition:opacity .25s ease, visibility .25s ease;
+    z-index:90;
+}
+
+.sidebar-overlay.show{
+    opacity:1;
+    visibility:visible;
+    pointer-events:auto;
+}
+
+body.sidebar-open{
+    overflow:hidden;
+}
+
+@media(min-width:1101px){
+    .sidebar-overlay{display:none!important;}
+}
+
 /* ================= RESPONSIVE ================= */
 
 @media(max-width:1200px){
@@ -1108,7 +1135,7 @@ body.crisis-mode .live-pill{
     }
 }
 
-@media(max-width:800px){
+@media(max-width:1100px){
 
     :root{
         --sidebar:0px;
@@ -1281,6 +1308,8 @@ SIDEBAR
     </div>
 
 </aside>
+
+<div class="sidebar-overlay" id="sidebarOverlay" onclick="closeSidebar()"></div>
 
 
 <!-- ======================================================
@@ -2281,11 +2310,28 @@ updateClock();
    SIDEBAR
 ========================================================== */
 
-function toggleSidebar(){
+function openSidebar(){
+    const sidebar = document.getElementById("sidebar");
+    const overlay = document.getElementById("sidebarOverlay");
+    if(!sidebar) return;
+    sidebar.classList.add("open");
+    if(overlay) overlay.classList.add("show");
+    document.body.classList.add("sidebar-open");
+}
 
-    document
-        .getElementById("sidebar")
-        .classList.toggle("open");
+function closeSidebar(){
+    const sidebar = document.getElementById("sidebar");
+    const overlay = document.getElementById("sidebarOverlay");
+    if(sidebar) sidebar.classList.remove("open");
+    if(overlay) overlay.classList.remove("show");
+    document.body.classList.remove("sidebar-open");
+}
+
+function toggleSidebar(){
+    const sidebar = document.getElementById("sidebar");
+    if(!sidebar) return;
+    if(sidebar.classList.contains("open")) closeSidebar();
+    else openSidebar();
 }
 
 
@@ -2357,9 +2403,7 @@ document
 
             /* mobile sidebar close */
 
-            document
-                .getElementById("sidebar")
-                .classList.remove("open");
+            closeSidebar();
 
 
             window.scrollTo({
@@ -2371,6 +2415,26 @@ document
 
     });
 
+
+
+
+/* ROBUST SIDEBAR CLOSE HANDLERS */
+document.addEventListener("keydown", function(event){
+    if(event.key === "Escape") closeSidebar();
+});
+
+document.addEventListener("click", function(event){
+    const sidebar = document.getElementById("sidebar");
+    const menu = document.querySelector(".mobile-menu");
+    if(!sidebar || !sidebar.classList.contains("open")) return;
+    if(menu && menu.contains(event.target)) return;
+    if(sidebar.contains(event.target)) return;
+    closeSidebar();
+});
+
+window.addEventListener("resize", function(){
+    if(window.innerWidth > 1100) closeSidebar();
+});
 
 /* ==========================================================
    NUMBER ANIMATION
